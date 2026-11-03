@@ -22,7 +22,6 @@ for key, val in (("__DATA__", safe(r(data))), ("__ICONS__", safe(r(icons))), ("_
     assert html.count(key) == 1, key
     html = html.replace(key, val, 1)
 if site:
-    html = html.replace("<title>Endgame API</title>", "<title>Bungie-Integrated-API</title>", 1)
     head = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
             '<meta name="description" content="Destiny 2 god roll tracker that reads your Bungie account: every copy graded for PvE and PvP, new drops, and transfers.">'

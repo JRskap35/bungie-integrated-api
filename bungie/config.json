@@ -1,1 +1,9 @@
-{"apiKey": "bcba26b6f4b4410a833586392db086f7", "clientId": "56437"}
+{
+ "apiKey": "bcba26b6f4b4410a833586392db086f7",
+ "clientId": "56437",
+ "siteOrigins": [
+  "https://jrskap35.github.io",
+  "https://endgameapi.pages.dev"
+ ],
+ "bungieOrigin": "https://jrskap35.github.io"
+}

@@ -15,8 +15,10 @@ if [ -z "$id" ]; then
 fi
 [ -n "$id" ] || { echo "Could not find or create the KV namespace (check the token's permissions)"; exit 1; }
 key=$(jq -r '.apiKey' bungie/config.json)
+origins=$(jq -r '(.siteOrigins // ["https://jrskap35.github.io"]) | join(",")' bungie/config.json)
+borigin=$(jq -r '.bungieOrigin // "https://jrskap35.github.io"' bungie/config.json)
 mkdir -p build/cloud
-sed -e "s/__KV_ID__/$id/" -e "s/__BUNGIE_API_KEY__/$key/" cloud/wrangler.toml > build/cloud/wrangler.toml
+sed -e "s/__KV_ID__/$id/" -e "s/__BUNGIE_API_KEY__/$key/" -e "s#__SITE_ORIGINS__#$origins#" -e "s#__BUNGIE_ORIGIN__#$borigin#" cloud/wrangler.toml > build/cloud/wrangler.toml
 cp cloud/worker.js build/cloud/worker.js
 (cd build/cloud && npx --yes wrangler@4 deploy)
 sub=$(curl -sS "${H[@]}" "$API/workers/subdomain" | jq -r '.result.subdomain // empty')

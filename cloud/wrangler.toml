@@ -5,8 +5,8 @@ compatibility_date = "2025-09-01"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGINS = "https://jrskap35.github.io"
-BUNGIE_ORIGIN = "https://jrskap35.github.io"
+ALLOWED_ORIGINS = "__SITE_ORIGINS__"
+BUNGIE_ORIGIN = "__BUNGIE_ORIGIN__"
 BUNGIE_API_KEY = "__BUNGIE_API_KEY__"
 
 [[kv_namespaces]]

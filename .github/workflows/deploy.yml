@@ -45,6 +45,10 @@ jobs:
         env:
           SITE_URL: https://jrskap35.github.io/bungie-integrated-api/
         run: bash kit/build.sh
+      - name: Publish to Cloudflare Pages (endgameapi.pages.dev)
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        continue-on-error: true
+        run: bash cloud/deploy_pages.sh
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
