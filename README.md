@@ -45,6 +45,25 @@ Every change is listed in the run summary; the weapon's details panel shows only
 
 Saved progress is keyed to each weapon's archetype and name, so tier changes and re-rankings never affect anyone's marks.
 
+## Progress that follows your Bungie sign in
+
+Weapons, rolls and locations always come straight from Bungie. What you enter by hand (armor pieces and stats, weapons
+marked Looking for) is saved online under your Bungie.net account by a small Cloudflare Worker in `cloud/`, so it shows
+up on any device you sign in from. The worker checks every request's Bungie token with Bungie itself, so each account
+can only read and write its own progress. Changes made while signed out, or after the one hour sign in runs out, stay in
+that browser and go up the next time you sign in.
+
+One time setup (free Cloudflare plan):
+1. Make a free account at dash.cloudflare.com, open **Workers & Pages** once and pick a workers.dev subdomain.
+2. Copy your **Account ID** (Workers & Pages overview, right side).
+3. My Profile > API Tokens > Create Token > **Edit Cloudflare Workers** template. Add the permission
+   **Account > Workers KV Storage > Edit** if the template lacks it. Create it and copy the token.
+4. In this repository: Settings > Secrets and variables > Actions > New repository secret:
+   `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
+5. Run the workflow (Actions > Build and publish > Run workflow). It creates the storage, deploys the worker
+   (`bia-progress`) and builds the site with its address. Without the secrets the site still builds, and hand entered
+   progress stays in each browser.
+
 ## Layout
 
 | Path | What it is |

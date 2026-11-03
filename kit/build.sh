@@ -25,7 +25,18 @@ python3 -I kit/crosscheck.py --check build/bungie/data.json build/hugo.json "${B
 # Bungie-Integrated-API: report card and location icons, then the hash maps that read a signed in Bungie account
 python3 -I kit/mode_icons.py build/bungie/icons.json build/icons_bia.json "${BUNGIE_CACHE:-build/bungie_cache}"
 python3 -I kit/bungie_hashes.py build/bungie/data.json "${BUNGIE_CACHE:-build/bungie_cache}" build/hashes.json
-python3 -I kit/assemble.py src/template.html build/bungie/data.json build/icons_bia.json site/index.html assets/stat_icons.json build/bungie/ticons.json build/bungie/elements.json assets/brand.json bungie/config.json build/hashes.json
+# progress sync: cloud/deploy.sh (run by the workflow when the Cloudflare secrets are set) leaves the worker's address here
+python3 -I - build/bungie_config.json <<'PY'
+import json, os, sys
+c = json.load(open("bungie/config.json"))
+if os.path.exists("build/vault_api.txt"):
+    c["vaultApi"] = open("build/vault_api.txt").read().strip()
+    print("Progress sync on:", c["vaultApi"])
+else:
+    print("Progress sync off (no Cloudflare secrets): hand-entered progress stays in each browser")
+json.dump(c, open(sys.argv[1], "w"))
+PY
+python3 -I kit/assemble.py src/template.html build/bungie/data.json build/icons_bia.json site/index.html assets/stat_icons.json build/bungie/ticons.json build/bungie/elements.json assets/brand.json build/bungie_config.json build/hashes.json
 # what changed since the last published version (shown on the workflow run page)
 if [ -n "${SITE_URL:-}" ] && curl -sSfL --max-time 60 "$SITE_URL" -o build/prev.html; then
   { echo '## What changed on the sheet'; echo '```'; python3 -I kit/diff.py build/prev.html build/data.json; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}" || true

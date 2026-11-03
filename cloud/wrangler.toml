@@ -1,0 +1,14 @@
+# Bungie-Integrated-API progress sync. deploy.sh fills in the KV namespace id and the Bungie API key before deploying.
+name = "bia-progress"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://jrskap35.github.io"
+BUNGIE_ORIGIN = "https://jrskap35.github.io"
+BUNGIE_API_KEY = "__BUNGIE_API_KEY__"
+
+[[kv_namespaces]]
+binding = "VAULT"
+id = "__KV_ID__"

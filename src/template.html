@@ -1344,6 +1344,13 @@ function setSync(s){
   const [l,c] = map[s] || map.local;
   const el = document.getElementById("sync");
   el.style.setProperty("--c", c); el.querySelector(".label").textContent = l;
+  // signed in with Bungie the label stays out of the way; it only shows up when a save didn't go through (Joe, 2026-11-03)
+  el.hidden = BUNGIE_LINKED && s !== "error" && s !== "offline";
+  if(BUNGIE_LINKED && (s === "error" || s === "offline")){
+    el.title = s === "error" ? "Your last change didn't reach your saved progress, usually because the Bungie sign in ran out (it lasts an hour). It's kept in this browser and goes up the next time you sign in with Bungie."
+      : "Couldn't reach the progress service. Your changes are kept in this browser and go up the next time you sign in with Bungie.";
+    return;
+  }
   el.title = s === "saved" ? "Your progress is saved to your account and follows you to other devices."
     : s === "local" ? "Account sync isn't available in this view, so progress is saved in this browser only."
     : s === "signedout" ? "Progress is saved in this browser only. Sign in with Google to save it to your account and use it on any device."
@@ -1523,6 +1530,7 @@ async function bTransfer(c, to){
 }
 function bSignOut(quiet){
   BT = null; BACCT = null; local.del(LTOK); BUNGIE_LINKED = false;
+  if(docRef === cloudRef){ docRef = null; } setSync("local");
   Object.keys(RC_SYNC).forEach(k => delete RC_SYNC[k]);
   PREVIEW = local.get(LPREV, true) !== false;
   paintBungie(); paintSync(); render();
@@ -1555,8 +1563,58 @@ async function bootBungie(){
     await bLoadAccount();
     BUNGIE_LINKED = true; PREVIEW = false;
     paintBungie(); paintSync(); render();
+    attachBungieCloud();
     await syncNow("open");
   }catch(e){ bError(e); }
+}
+
+/* ---------- progress that follows the Bungie sign in (cloud/worker.js, a Cloudflare Worker) ----------
+   What a player enters by hand (armor pieces and stats, Looking for, marks, the armor class) is saved online under their
+   Bungie.net account, so it shows up on any device they sign in from. The worker checks every call's Bungie token with
+   Bungie itself. This browser remembers which saved version it last matched (BCLOUD) so that changes made while signed
+   out, or after the hour long sign in ran out, go up the next time instead of being overwritten. If both sides changed,
+   the two are combined, with this browser's entries winning where they overlap. */
+const VAULT_API = BUNGIE && BUNGIE.vaultApi ? String(BUNGIE.vaultApi).replace(/\/+$/, "") : "";
+const progSig = () => JSON.stringify([marks, armor, armorLook]);
+const hasProgress = () => Object.keys(marks).length + Object.keys(armor).length + Object.keys(armorLook).length > 0;
+const lCloud = () => "bia.cloud.v1." + ((BT && BT.mid) || "");
+async function cloudCall(method, body){
+  if(!bTokenOk()){ const e = new Error("signed out"); e.code = "auth"; throw e; }
+  const r = await fetch(VAULT_API + "/v1/progress", {method, cache: "no-store",
+    headers: Object.assign({"Authorization": "Bearer " + BT.access}, body ? {"Content-Type": "application/json"} : {}),
+    body: body ? JSON.stringify(body) : undefined});
+  if(r.status === 401){ const e = new Error("signed out"); e.code = "auth"; throw e; }
+  if(!r.ok){ const e = new Error("HTTP " + r.status); e.code = "http"; throw e; }
+  return r.json();
+}
+const cloudRef = {async set(body){
+  const sig = JSON.stringify([body.marks, body.armor, body.armorLook]);
+  const r = await cloudCall("PUT", {marks: body.marks, armor: body.armor, armorLook: body.armorLook, cls: body.cls});
+  local.set(lCloud(), {base: r.savedAt || 0, sig});
+}};
+async function attachBungieCloud(){
+  if(!VAULT_API){ setSync("local"); return; }
+  setSync("loading");
+  try{
+    const remote = await cloudCall("GET");
+    docRef = cloudRef;
+    const seen = local.get(lCloud(), {base: 0, sig: null}) || {base: 0, sig: null};
+    const mine = hasProgress() && progSig() !== seen.sig;               // changed here since the last sync
+    if(!remote){ if(mine) await persist(); else setSync("saved"); return; }
+    const theirs = (remote.savedAt || 0) !== seen.base;                  // changed somewhere else since then
+    const R = {marks: remote.marks || {}, armor: remote.armor || {}, armorLook: remote.armorLook || {}};
+    if(mine && theirs){
+      marks = Object.assign({}, R.marks, marks); armor = Object.assign({}, R.armor, armor); armorLook = Object.assign({}, R.armorLook, armorLook);
+      await persist(); render(); return;
+    }
+    if(mine){ await persist(); return; }
+    marks = JSON.parse(JSON.stringify(R.marks)); armor = JSON.parse(JSON.stringify(R.armor)); armorLook = JSON.parse(JSON.stringify(R.armorLook));
+    if(CLASSES.some(c => c[0] === remote.cls)) armorCls = remote.cls;
+    local.set(LKEY, {marks, armor, armorLook, cls: armorCls, mode: MODE});
+    local.set(lCloud(), {base: remote.savedAt || 0, sig: progSig()});
+    setSync("saved");
+    if(overlay.hidden && menu.hidden) render();
+  }catch(e){ docRef = null; setSync(e && e.code === "auth" ? "error" : "offline"); }
 }
 
 /* ---------- website mode: Google sign in + Firestore (Firebase) ---------- */
