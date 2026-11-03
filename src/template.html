@@ -1862,10 +1862,12 @@ function dropCard(d){
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
   const best = trash ? "trash" : g.pve === "god" || g.pvp === "god" ? "god" : "semi";
   const dm = copyMode(d.c, bestMode(d.c, L, L[MODE] ? MODE : L.pve ? "pve" : "pvp"), L);
+  // the tier follows the PvE roll / PvP roll pill too, so the card shows that sheet's tier and rank (Joe, 2026-11-03)
+  const tw = L[dm] || w, dropTier = tierCell(tw.tier, tw.rank).replace('<div class="tier-cell"', `<div class="tier-cell" title="${RC_NAME[dm]} tier: ${esc(tw.tier)}${tw.rank != null ? ` #${tw.rank}` : ""}"`);
   return `<article class="drop v-${best}">
     <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${ownBox(w)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
-      <div class="drop-where">${ci.html}${locChip(d.c)}</div>${tierCell(w.tier, w.rank)}</div>
+      <div class="drop-where">${ci.html}${locChip(d.c)}</div>${dropTier}</div>
     <div class="drop-verdict">${verdict}${keyPills(dm, d.c.cid, L)}</div>
     ${copyGrid(w, d.c, L, dm)}
     ${S.rc[w.id] === "all" ? rcPanel(w) : ""}
