@@ -312,6 +312,8 @@ button.rc-b:hover{background:rgba(255,255,255,.07)}
 .mb-pvp{--c:var(--pvp);box-shadow:0 0 0 1px color-mix(in srgb,var(--pvp) 70%,transparent)}
 .mb-legend{display:inline-flex;align-items:center;gap:5px;margin-left:12px;font-family:var(--font-body);font-size:11.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
 .mb-legend .mb{width:15px;height:15px}
+.mb-note{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font-family:var(--font-body);font-size:11.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.drop-verdict .mb-note,.drop-verdict .mb-legend{margin-left:4px}
 .mb-legend .mb-pvp{margin-left:8px}
 .wcard .rc-parts{grid-template-columns:1fr 1fr}
 tr.rcrow td{padding-top:2px}
@@ -1578,10 +1580,11 @@ function rcIcons(w){
     return `<button type="button" class="rc-b rc-${m} st-${c.state} ${open === m ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="${m}" aria-expanded="${open === m}" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}<b class="rc-n">${n}</b></button>`;
   }).join("") + `</span>`;
 }
-// one copy's parts, checked against BOTH lists at once: every rolled option that either the PvE or the PvP list names is
-// outlined (green when it is a top pick on either list, yellow when it is only a listed pick), and its top right corner
-// carries a blue PvE shield, a red PvP shield, or both, for the lists that name it. Unlisted options are dimmed beside a hit.
-// The same grid shows on every page that lists owned copies (Weapons and Vault dropdowns, New Drops), whatever the toggle.
+// one copy's parts. Colors follow ONE mode, the one being looked at (the PvE or PvP report card icon that opened the
+// dropdown, otherwise the PvE / PvP toggle): green for that list's top pick, yellow for another pick on that list, and
+// options that list doesn't name stay plain (dimmed beside a hit). The corner shields still show every list that names
+// an option, blue PvE and red PvP, so a perk that only matters in the other mode is easy to spot.
+// The same grid shows on every page that lists owned copies (Weapons and Vault dropdowns, New Drops).
 function modeBadges(h){
   const RANK = {god:"top pick", semi:"listed pick"};
   const on = ["pve", "pvp"].filter(m => h[m]);
@@ -1589,12 +1592,12 @@ function modeBadges(h){
   const tip = on.map(m => `${RC_NAME[m]}: ${RANK[h[m]]}`).join(" · ");
   return `<span class="mbadges" title="${tip}" aria-label="${tip}">${on.map(m => `<span class="mb mb-${m}" style="--src:url('${iconURL("n", "m" + m)}')"></span>`).join("")}</span>`;
 }
-function copyGrid(base, cp, L){
+function copyGrid(base, cp, L, mode){
   const ic = (n, map) => n && map[n] ? iconURL("t", map[n]) : "";
   const part = (label, value, map, f, fixedIcon) => {
     const list = opts(value); if(!list.length) list.push("");
     const hm = list.map(n => ({pve: f ? partHit(f, n, L && L.pve) : "", pvp: f ? partHit(f, n, L && L.pvp) : ""}));
-    const hits = hm.map(h => h.pve === "god" || h.pvp === "god" ? "god" : h.pve || h.pvp ? "semi" : "");
+    const hits = hm.map(h => h[mode] || "");
     const best = hits.includes("god") ? "god" : hits.includes("semi") ? "semi" : "";
     const many = list.length > 1;
     const rows = list.map((n, i) => {
@@ -1612,19 +1615,21 @@ function copyGrid(base, cp, L){
     ${part("Perk 2", cp.p2, PART_ICON, "p2")}
     ${part("Masterwork", cp.mw, MW_ICON, "mw")}</div>`;
 }
+const colorNote = m => `<span class="mb-note"><span class="mdot ${m}"></span>Colors show the ${RC_NAME[m]} roll</span>`;
 const MB_LEGEND = `<span class="mb-legend"><span class="mb mb-pve" style="--src:url('${iconURL("n", "mpve")}')"></span>PvE pick<span class="mb mb-pvp" style="--src:url('${iconURL("n", "mpvp")}')"></span>PvP pick</span>`;
 const TAG = {god:"God Roll", semi:"Semi-God Roll", none:"Safe to dismantle"};
 function rcPanel(w){
   const m = S.rc[w.id]; if(!m) return "";
   const rc = reportCard(w), c = rc.cards[m]; if(!c.list.length) return "";
   const base = rc.L.pve || rc.L.pvp || w, L = m === "trash" ? null : rc.L[m];
+  const cm = m === "trash" ? (rc.L[MODE] ? MODE : rc.L.pve ? "pve" : "pvp") : m;   // which list the colors follow
   const gods = c.list.filter(x => x.g === "god").length;
   const title = m === "trash" ? `Safe to dismantle · ${plural(c.list.length, "copy", "copies")}`
     : `${RC_NAME[m]} · ${[gods ? plural(gods, "god roll", "god rolls") : "", c.list.length - gods ? plural(c.list.length - gods, "semi-god roll", "semi-god rolls") : ""].filter(Boolean).join(", ")}`;
   const rows = c.list.map(({c: cp, g}, i) => cp
-    ? `<div class="rc-copy"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Copy ${i + 1}</span><span class="copy-where">${copyIcons(cp, rc.L).html}${locChip(cp)}</span></div>${copyGrid(base, cp, rc.L)}</div>`
+    ? `<div class="rc-copy"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Copy ${i + 1}</span><span class="copy-where">${copyIcons(cp, rc.L).html}${locChip(cp)}</span></div>${copyGrid(base, cp, rc.L, cm)}</div>`
     : `<div class="rc-copy"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Marked by you. The exact roll shows here once Bungie account sync is connected.</span></div></div>`).join("");
-  return `<div class="rc-panel rc-panel-${m}"><h4>${title}${MB_LEGEND}</h4>${rows}</div>`;
+  return `<div class="rc-panel rc-panel-${m}"><h4>${title}${colorNote(cm)}${MB_LEGEND}</h4>${rows}</div>`;
 }
 // one copy's PvE, PvP and trash icons (as on New Drops cards)
 function copyIcons(c, L){
@@ -1653,8 +1658,8 @@ function dropCard(d){
     <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${tierCell(w.tier, w.rank)}</div>
-    <div class="drop-verdict">${verdict}${MB_LEGEND}</div>
-    ${copyGrid(w, d.c, L)}
+    <div class="drop-verdict">${verdict}${colorNote(MODE)}${MB_LEGEND}</div>
+    ${copyGrid(w, d.c, L, MODE)}
   </article>`;
 }
 function dropsView(){
@@ -2319,7 +2324,14 @@ document.addEventListener("click", e => {
     case "stat": if(t.dataset.mode === "vault") S.vStat = k; else S.wStat = k; render(); return;
     case "astat": S.aStat = k; render(); return;
     case "asort": S.aSort = k; render(); return;
-    case "mode": if(k !== MODE){ applyMode(k); fixScope(); S.open = {}; persist(); render(); scrollTo({top:0}); } return;
+    case "mode": if(k !== MODE){
+      const was = Object.entries(S.rc).filter(([, v]) => v).map(([i, v]) => [BYID[i], v]).filter(([w]) => w);
+      applyMode(k); fixScope(); S.open = {};
+      S.rc = {};
+      was.forEach(([w, v]) => { const t = TWIN[MODE][rkeyOf(w)]; if(!t) return;
+        const has = m => ((reportCard(t).cards[m] || {}).list || []).length;
+        S.rc[t.id] = v === "trash" ? (has("trash") ? "trash" : has(MODE) ? MODE : null) : has(MODE) ? MODE : has(v) ? v : null; });
+      persist(); render(); scrollTo({top:0}); } return;
     case "acls": if(armorCls !== k){ armorCls = k; persist(); render(); } return;
     case "atag": S.aTags = S.aTags.includes(k) ? S.aTags.filter(x => x !== k) : S.aTags.concat(k); render(); return;
     case "atag-clear": S.aTags = []; render(); return;
