@@ -273,17 +273,53 @@ button.rc-b:hover{background:rgba(255,255,255,.07)}
 .rc-b.st-trash{color:#ef8a7e;filter:drop-shadow(0 0 4px rgba(239,138,126,.4))}
 .rc-b.st-none{color:var(--muted);opacity:.45}
 .rc-b.st-na{opacity:.3;outline:1px dashed var(--faint);outline-offset:-1px}
-.rc-b.st-na .rc-ico{width:16px;height:16px}
 .rc-n{position:absolute;right:-6px;bottom:-6px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;background:var(--ink);border:1.5px solid currentColor;color:var(--fg);font:600 10px/13px var(--font-mono);text-align:center;font-style:normal}
 .wtable .rc-b{width:30px;height:30px}
 .wtable .rc-ico{width:23px;height:23px}
-.rc-panel{border:1px solid var(--line-2);border-left:2px solid var(--rcc,var(--line-2));background:rgba(0,0,0,.3);border-radius:3px;padding:10px 12px;display:grid;gap:10px;text-align:left}
+/* Change 1 (Joe, 2026-11-03): the PvE, PvP and Safe to dismantle icons sit on their own line under every weapon's name,
+   above the type and season line, and all three read the same size. The shields' art fills about 81 percent of its
+   box, the trash can's lines about 65 percent, so the can is drawn larger to match the shields' height. */
+.nm-rc{display:flex;margin:5px 0 10px}
+.nm-line .expand{margin-left:-6px}
+.own{display:inline-flex;align-items:stretch;height:22px;border:1px solid var(--line-2);border-radius:3px;overflow:hidden;flex:none;vertical-align:middle}
+.own-l{display:grid;place-items:center;padding:0 7px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);background:rgba(255,255,255,.03)}
+.own-n{display:grid;place-items:center;min-width:22px;padding:0 5px;border-left:1px solid var(--line-2);font:600 12px/1 var(--font-mono);color:var(--fg)}
+.own.has{border-color:color-mix(in srgb,var(--accent) 60%,var(--line-2))}
+.own.has .own-l{color:var(--accent)}
+button.own{appearance:none;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+button.own:hover,button.own.on{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 60%,transparent),0 0 10px color-mix(in srgb,var(--accent) 25%,transparent)}
+button.own.on .own-n{background:color-mix(in srgb,var(--accent) 34%,transparent)}
+.rc-panel-all{--rcc:var(--accent)}
+.drop .rc-panel{margin-top:2px}
+.own.has .own-n{border-left-color:color-mix(in srgb,var(--accent) 60%,var(--line-2));background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.drop-nl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nm-rc .rc{gap:14px;padding:0}
+.rc-b svg{width:26px;height:26px}
+.wtable .rc-b svg{width:28px;height:28px}
+.rc-panel{border:1px solid var(--line-2);border-left:2px solid var(--rcc,var(--line-2));background:rgba(0,0,0,.3);border-radius:3px;padding:12px 14px;display:grid;gap:10px;text-align:left}
 .rc-panel-pve,.rc-panel-pvp{--rcc:var(--god)}
 .rc-panel-trash{--rcc:#ef8a7e}
 .rc-panel h4{margin:0;font-family:var(--font-mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.rc-copy{display:grid;gap:7px}
-.rc-copy + .rc-copy{border-top:1px solid var(--line);padding-top:10px}
-.rc-copy-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:12.5px}
+.rc-copy{display:grid;grid-template-columns:60px minmax(0,1fr);grid-template-areas:"loc head" "loc parts";gap:10px 14px;align-items:start}
+.rc-copy.rc-marked{display:block}
+.rc-copy + .rc-copy{border-top:1px solid var(--line);padding-top:12px}
+.rc-loc{grid-area:loc}
+.rc-copy > .rc-copy-h{grid-area:head;min-height:30px}
+.rc-copy > .rc-parts{grid-area:parts}
+.rc-cn{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.rkeys{display:inline-flex;align-items:center;gap:6px;padding-left:16px;border-left:1px solid var(--line-2)}
+.rkey{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px 0 4px;border:1px solid var(--line-2);border-radius:12px;font-size:11.5px;color:var(--muted);white-space:nowrap}
+button.rkey{appearance:none;background:none;font:inherit;font-size:11.5px;cursor:pointer;transition:border-color .12s,background .12s,color .12s}
+button.rkey:hover:not(:disabled):not(.on){color:var(--fg);border-color:var(--faint)}
+button.rkey:disabled{opacity:.35;cursor:not-allowed}
+.rkey:not(.on) .mb{opacity:.75}
+.rkey .mb{width:16px;height:16px;box-shadow:none;background:none}
+.rkey.on{color:var(--fg)}
+.rkey-pve.on{border-color:color-mix(in srgb,var(--pve) 75%,transparent);background:color-mix(in srgb,var(--pve) 14%,transparent)}
+.rkey-pvp.on{border-color:color-mix(in srgb,var(--pvp) 75%,transparent);background:color-mix(in srgb,var(--pvp) 14%,transparent)}
+.drop-verdict{align-items:center}
+.drop-verdict .rkeys{margin-left:4px}
+.rc-copy-h{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;font-size:12.5px}
 .rc-tag{font-family:var(--font-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
 .rc-tag.g-god{color:var(--god)} .rc-tag.g-semi{color:var(--semi)} .rc-tag.g-none{color:#ef8a7e}
 .rc-parts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
@@ -310,13 +346,14 @@ button.rc-b:hover{background:rgba(255,255,255,.07)}
 .mb::before{content:"";position:absolute;inset:2.5px;background:var(--c);-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
 .mb-pve{--c:var(--pve);box-shadow:0 0 0 1px color-mix(in srgb,var(--pve) 70%,transparent)}
 .mb-pvp{--c:var(--pvp);box-shadow:0 0 0 1px color-mix(in srgb,var(--pvp) 70%,transparent)}
-.mb-legend{display:inline-flex;align-items:center;gap:5px;margin-left:12px;font-family:var(--font-body);font-size:11.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
-.mb-legend .mb{width:15px;height:15px}
-.mb-note{display:inline-flex;align-items:center;gap:6px;margin-left:12px;font-family:var(--font-body);font-size:11.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
-.drop-verdict .mb-note,.drop-verdict .mb-legend{margin-left:4px}
-.mb-legend .mb-pvp{margin-left:8px}
 .wcard .rc-parts{grid-template-columns:1fr 1fr}
 tr.rcrow td{padding-top:2px}
+/* the location tile stands where the weapon's picture stands in the row above: centered under it, and centered on the
+   copy's height. The table's picture column is 7 percent wide, so the tile's column is sized from the row's width. */
+.wtable tr.rcrow > td{padding-left:4px}
+tr.rcrow .rc-panel{padding-left:8px}
+.wtable .rc-copy{grid-template-columns:max(60px, calc(7% - 25px)) minmax(0,1fr)}
+.rc-loc{align-self:center;justify-self:center}
 .rc-prev{display:inline-flex;align-items:center;gap:8px}
 .rc-switch{appearance:none;border:1px solid var(--line-2);background:none;color:var(--muted);font:500 11px var(--font-mono);letter-spacing:.08em;padding:2px 9px;border-radius:9px;cursor:pointer}
 .rc-switch[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
@@ -684,6 +721,11 @@ tr.detail.adetail td{padding-left:72px}
 @keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
 
 @media (max-width:760px){
+  .rc-copy{grid-template-columns:44px minmax(0,1fr);grid-template-areas:"loc head" "parts parts";gap:10px 12px;align-items:center}
+  .rc-loc .loc-tile{width:44px;height:44px} .rc-loc .loc-tile .loc-img{width:38px;height:38px} .rc-loc .loc-tile .loc-cls{width:28px;height:28px}
+  .wcard .rc-panel{margin-left:-6px;padding-left:4px}
+  .rkeys{padding-left:0;border-left:0}
+  .rc-cn{margin-left:0}
   .topbar-in{gap:0 12px}
   .nav{order:3;width:100%;border-top:1px solid var(--line)}
   .nav button{flex:1;justify-content:center;height:46px;padding:0 6px;font-size:15px;letter-spacing:.14em}
@@ -743,6 +785,55 @@ tr.detail.adetail td{padding-left:72px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* ================= Change 5 (Joe, 2026-11-03): the mode color leads the content =================
+   Charcoal and muted gold stay the look of the app: the header, the brand, page titles, body text, the Vault's stats and
+   progress bars, the ammo tabs and their colors, and the Obtained box all keep the gold. Everything that says what you
+   are looking at, or what you picked, takes the mode color instead, blue in PvE and red in PvP: the selected page tab
+   underline, sub tabs, the search box, status buttons, sort and filter picks, column sort arrows, table and card
+   outlines, row lines, open details, the owned copies dropdown and the location tile. --mode comes from the PvE / PvP
+   toggle (data-mode on the page). */
+:root{
+  --mline:color-mix(in srgb,var(--mode) 40%,var(--line-2));        /* resting outline */
+  --mrow:color-mix(in srgb,var(--mode) 18%,var(--line));           /* row and divider lines */
+  --mtint:color-mix(in srgb,var(--mode) 13%,transparent);          /* picked fill */
+  --mtext:color-mix(in srgb,var(--mode) 58%,#ffffff);              /* mode color as readable text */
+}
+:focus-visible{outline-color:var(--mode)}
+.nav button[aria-current="page"]::after{background:var(--mode);box-shadow:0 0 10px color-mix(in srgb,var(--mode) 65%,transparent)}
+.subtabs{border-bottom-color:var(--mrow)}
+.subtab[aria-pressed="true"]{border-bottom-color:var(--mode)}
+.search{border-color:var(--mline)}
+.search:focus-within{border-color:var(--mode);box-shadow:0 0 0 1px var(--mtint)}
+.search svg{color:var(--mtext)}
+.seg{border-color:var(--mline)}
+.seg button{border-right-color:var(--mline)}
+.seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--mode) 16%,var(--panel-2));box-shadow:inset 0 -2px 0 var(--mode)}
+.sort-pill{border-color:var(--mline)}
+.sort-pill.on{border-color:var(--mode);background:var(--mtint)}
+.sort-pill .x{border-left-color:color-mix(in srgb,var(--mode) 45%,transparent)}
+.sort-n{background:var(--mode);color:#fff}
+.sort-dir{color:var(--mtext)}
+.text-btn{color:var(--mtext)}
+.filters{border-color:var(--mline)}
+.filters .badge-n{background:var(--mode);color:#fff}
+.fv:hover{border-color:var(--mline)}
+.fv[aria-pressed="true"]{border-color:var(--mode);background:var(--mtint)}
+th{border-bottom-color:var(--mline)}
+th .hs.on{color:var(--mtext)}
+td{border-bottom-color:var(--mrow)}
+tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
+.name-btn:hover .wname{color:var(--mtext)}
+.rc-switch[aria-pressed="true"]{border-color:var(--mode);color:var(--mtext);background:var(--mtint)}
+.rc-panel{border-top-color:var(--mline);border-right-color:var(--mline);border-bottom-color:var(--mline)}
+.rc-copy + .rc-copy{border-top-color:var(--mrow)}
+.rc-part{border-color:color-mix(in srgb,var(--mode) 22%,var(--line))}
+.rkeys{border-left-color:var(--mline)}
+.loc-tile{border-color:var(--mline)}
+.loc-tile:hover,.loc-tile:focus-visible,.loc-tile[aria-expanded="true"]{border-color:var(--mode);background:color-mix(in srgb,var(--mode) 14%,rgba(0,0,0,.35))}
+.piece:hover{border-color:var(--mode)}
+.acard .bonuses{border-top-color:var(--mrow)}
+.empty-state{border-color:var(--mline)}
 </style>
 
 <div id="bgart" aria-hidden="true"></div>
@@ -974,7 +1065,7 @@ const S = {
   ammo:"all", arch:"all", q:"", sorts:[], filters:{}, fOpen:false,
   wStat:"all", vStat:"all",
   aq:"", aStat:"all", aTags:[], aSort:"sheet", vaq:"",
-  open:{}, rc:{}, menuFor:null, edit:null
+  open:{}, rc:{}, cm:{}, menuFor:null, edit:null
 };
 applyMode(savedMode);
 
@@ -1092,14 +1183,16 @@ function partHit(f, v, L){
 function reportCard(w){
   const k = rkeyOf(w), L = {pve: TWIN.pve[k], pvp: TWIN.pvp[k]};
   const copies = BUNGIE_LINKED ? (RC_SYNC[k] || []) : (PREVIEW ? sampleCopies(k).concat(DROPS.copies[k] || []) : []);
-  const cards = {pve:{list:[]}, pvp:{list:[]}, trash:{list:[]}};
+  const cards = {pve:{list:[]}, pvp:{list:[]}, trash:{list:[]}, all:{list:[]}};
   const keep = g => g === "god" || g === "semi";
   copies.forEach(c => {
     const g = {pve: gradeIn(c, L.pve), pvp: gradeIn(c, L.pvp)};
     ["pve","pvp"].forEach(m => { if(keep(g[m])) cards[m].list.push({c, g: g[m]}); });
     if(!keep(g.pve) && !keep(g.pvp)) cards.trash.list.push({c, g: "none"});
+    cards.all.list.push({c, g: keep(g[MODE]) ? g[MODE] : keep(g.pve) ? g.pve : keep(g.pvp) ? g.pvp : "none"});
   });
   if(!BUNGIE_LINKED && !PREVIEW) ["pve","pvp"].forEach(m => { const mk = L[m] && marks[L[m].id]; if(keep(mk)) cards[m].list.push({c: null, g: mk}); });
+  if(!BUNGIE_LINKED && !PREVIEW){ const mk = L[MODE] && marks[L[MODE].id]; if(keep(mk)) cards.all.list.push({c: null, g: mk}); }
   ["pve","pvp"].forEach(m => {
     const ls = cards[m].list.sort((a, b) => (a.g === "god" ? 0 : 1) - (b.g === "god" ? 0 : 1));
     cards[m].state = !L[m] ? "na" : ls.some(x => x.g === "god") ? "god" : ls.length ? "semi" : "none";
@@ -1540,6 +1633,22 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const elVar = e => `var(--el-${String(e).toLowerCase()})`;
 const isObtained = m => m === "god" || m === "semi";
+/* Change 4 (Joe, 2026-11-03): an Obtained box right of every weapon's name (Weapons, Vault, New Drops) with how many
+   copies the account holds, safe to dismantle ones included, so one gun that is both a PvE and a PvP keeper is not
+   mistaken for two. Empty when none are owned. Without a Bungie account or sample rolls, a weapon you marked counts as 1. */
+function ownedCount(w){
+  const k = rkeyOf(w);
+  if(BUNGIE_LINKED) return (RC_SYNC[k] || []).length;
+  if(PREVIEW) return sampleCopies(k).concat(DROPS.copies[k] || []).length;
+  return isObtained(marks[w.id]) ? 1 : 0;
+}
+// with one or more copies the box is a button: it opens a dropdown of every copy on the account (Change 6, 2026-11-03)
+function ownBox(w){
+  const n = ownedCount(w);
+  if(!n) return `<span class="own" title="None on your account"><span class="own-l">Obtained</span><b class="own-n"></b></span>`;
+  const open = S.rc[w.id] === "all", tip = `${n} ${n === 1 ? "copy" : "copies"} on your account. ${open ? "Hide them" : "Show them all"}`;
+  return `<button type="button" class="own has ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${tip}" aria-label="${tip}"><span class="own-l">Obtained</span><b class="own-n">${n}</b></button>`;
+}
 const piecesOf = s => armor[s.id] || {};
 const lookOf = s => armorLook[s.id] || {};
 // Bungie's art for this set's piece in the chosen class, or the outline glyph if Bungie has none
@@ -1576,8 +1685,8 @@ function rcIcons(w){
       : n ? `${RC_NAME[m]}: ${[gods ? plural(gods, "god roll", "god rolls") : "", semis ? plural(semis, "semi-god roll", "semi-god rolls") : ""].filter(Boolean).join(", ")}`
       : `${RC_NAME[m]}: no god or semi-god roll owned`;
     const glyph = m === "trash" ? I.trash : `<span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>`;
-    if(!n) return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}</span>`;
-    return `<button type="button" class="rc-b rc-${m} st-${c.state} ${open === m ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="${m}" aria-expanded="${open === m}" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}<b class="rc-n">${n}</b></button>`;
+    // Change 9 (Joe, 2026-11-03): these icons only show the grades now; the Obtained box opens the copies
+    return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}${n ? `<b class="rc-n">${n}</b>` : ""}</span>`;
   }).join("") + `</span>`;
 }
 // one copy's parts. Colors follow ONE mode, the one being looked at (the PvE or PvP report card icon that opened the
@@ -1615,21 +1724,45 @@ function copyGrid(base, cp, L, mode){
     ${part("Perk 2", cp.p2, PART_ICON, "p2")}
     ${part("Masterwork", cp.mw, MW_ICON, "mw")}</div>`;
 }
-const colorNote = m => `<span class="mb-note"><span class="mdot ${m}"></span>Colors show the ${RC_NAME[m]} roll</span>`;
-const MB_LEGEND = `<span class="mb-legend"><span class="mb mb-pve" style="--src:url('${iconURL("n", "mpve")}')"></span>PvE pick<span class="mb mb-pvp" style="--src:url('${iconURL("n", "mpvp")}')"></span>PvP pick</span>`;
 const TAG = {god:"God Roll", semi:"Semi-God Roll", none:"Safe to dismantle"};
+/* Change 2 (Joe, 2026-11-03): a cleaner owned copies dropdown. No title line. Each copy is one block: its location tile
+   on the left, then one header line (the copy's PvE, PvP and Safe to dismantle icons, the PvE roll / PvP roll key, and
+   "Copy 1 of 2" when there is more than one), then the part boxes with their corner shields. The key's lit badge is the
+   list the colors follow. */
+/* Change 7 (Joe, 2026-11-03): the PvE roll / PvP roll badges are a toggle for that one copy, like the PvE / PvP switch in
+   the header: press one and that copy's perk colors follow that list, so a gun that is a keeper in both modes can be
+   read both ways. The choice belongs to the copy (S.cm, by copy id) until the header toggle is switched, which resets
+   every copy to the header's mode. A mode that doesn't rate the weapon can't be picked. */
+// Change 8 (Joe, 2026-11-03): in the Obtained dropdown and on New Drops each copy opens on its best mode: a god roll
+// beats a semi-god roll, which beats no keeper. When both modes grade the same, the header toggle decides.
+// (The PvE and PvP icon dropdowns keep opening on the mode you clicked.)
+function bestMode(cp, L, fallback){
+  const R = {god: 2, semi: 1};
+  const e = L.pve ? R[gradeIn(cp, L.pve)] || 0 : -1, v = L.pvp ? R[gradeIn(cp, L.pvp)] || 0 : -1;
+  return e > v ? "pve" : v > e ? "pvp" : fallback;
+}
+const copyMode = (cp, fallback, L) => { const m = cp && S.cm[cp.cid]; return m && L && L[m] ? m : fallback; };
+function keyPills(active, cid, L){
+  return `<span class="rkeys" role="group" aria-label="Show this copy's colors for">${["pve", "pvp"].map(m => {
+    const can = !L || !!L[m], on = m === active;
+    return `<button type="button" class="rkey rkey-${m} ${on ? "on" : ""}" data-act="cmode" data-cid="${esc(cid || "")}" data-k="${m}" aria-pressed="${on}" ${can ? "" : "disabled"} title="${can ? (on ? `Showing the ${RC_NAME[m]} roll` : `Show the ${RC_NAME[m]} roll`) : `Not rated in ${RC_NAME[m]}`}"><span class="mb mb-${m}" style="--src:url('${iconURL("n", "m" + m)}')"></span>${RC_NAME[m]} roll</button>`;
+  }).join("")}</span>`;
+}
 function rcPanel(w){
   const m = S.rc[w.id]; if(!m) return "";
   const rc = reportCard(w), c = rc.cards[m]; if(!c.list.length) return "";
-  const base = rc.L.pve || rc.L.pvp || w, L = m === "trash" ? null : rc.L[m];
-  const cm = m === "trash" ? (rc.L[MODE] ? MODE : rc.L.pve ? "pve" : "pvp") : m;   // which list the colors follow
-  const gods = c.list.filter(x => x.g === "god").length;
-  const title = m === "trash" ? `Safe to dismantle · ${plural(c.list.length, "copy", "copies")}`
-    : `${RC_NAME[m]} · ${[gods ? plural(gods, "god roll", "god rolls") : "", c.list.length - gods ? plural(c.list.length - gods, "semi-god roll", "semi-god rolls") : ""].filter(Boolean).join(", ")}`;
+  const base = rc.L.pve || rc.L.pvp || w;
+  const cm = m === "trash" || m === "all" ? (rc.L[MODE] ? MODE : rc.L.pve ? "pve" : "pvp") : m;   // which list the colors follow
+  if(m === "all"){                     // Change 9: god rolls first, then semi-god rolls, then safe to dismantle
+    const R = {god: 2, semi: 1}, rank = x => !x.c ? (R[x.g] || 0) : Math.max(R[gradeIn(x.c, rc.L.pve)] || 0, R[gradeIn(x.c, rc.L.pvp)] || 0);
+    c.list = c.list.map((x, i) => [x, rank(x), i]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map(x => x[0]);
+  }
+  const n = c.list.length;
+  const modeOf = cp => copyMode(cp, m === "all" ? bestMode(cp, rc.L, cm) : cm, rc.L);
   const rows = c.list.map(({c: cp, g}, i) => cp
-    ? `<div class="rc-copy"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Copy ${i + 1}</span><span class="copy-where">${copyIcons(cp, rc.L).html}${locChip(cp)}</span></div>${copyGrid(base, cp, rc.L, cm)}</div>`
-    : `<div class="rc-copy"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Marked by you. The exact roll shows here once Bungie account sync is connected.</span></div></div>`).join("");
-  return `<div class="rc-panel rc-panel-${m}"><h4>${title}${colorNote(cm)}${MB_LEGEND}</h4>${rows}</div>`;
+    ? `<div class="rc-copy"><div class="rc-loc">${locChip(cp)}</div><div class="rc-copy-h">${copyIcons(cp, rc.L).html}${keyPills(modeOf(cp), cp.cid, rc.L)}${n > 1 ? `<span class="rc-cn">Copy ${i + 1} of ${n}</span>` : ""}</div>${copyGrid(base, cp, rc.L, modeOf(cp))}</div>`
+    : `<div class="rc-copy rc-marked"><div class="rc-copy-h"><span class="rc-tag g-${g}">${TAG[g]}</span><span class="dim">Marked by you. The exact roll shows here once your Bungie account is connected.</span></div></div>`).join("");
+  return `<div class="rc-panel rc-panel-${m}">${rows}</div>`;
 }
 // one copy's PvE, PvP and trash icons (as on New Drops cards)
 function copyIcons(c, L){
@@ -1654,12 +1787,14 @@ function dropCard(d){
   const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
   const best = trash ? "trash" : g.pve === "god" || g.pvp === "god" ? "god" : "semi";
+  const dm = copyMode(d.c, bestMode(d.c, L, L[MODE] ? MODE : L.pve ? "pve" : "pvp"), L);
   return `<article class="drop v-${best}">
-    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
+    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${ownBox(w)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${tierCell(w.tier, w.rank)}</div>
-    <div class="drop-verdict">${verdict}${colorNote(MODE)}${MB_LEGEND}</div>
-    ${copyGrid(w, d.c, L, MODE)}
+    <div class="drop-verdict">${verdict}${keyPills(dm, d.c.cid, L)}</div>
+    ${copyGrid(w, d.c, L, dm)}
+    ${S.rc[w.id] === "all" ? rcPanel(w) : ""}
   </article>`;
 }
 function dropsView(){
@@ -1839,7 +1974,20 @@ const flat = a => a.map(x => Array.isArray(x) ? x[0] : x).join(" ");
 function matchesQuery(w, q){
   return (w.name + " " + w.var + " " + w.arch + " " + archName(w.arch) + " " + flat(w.p1) + " " + flat(w.p2) + " " + w.origin + " " + flat(w.barrel) + " " + flat(w.mag)).toLowerCase().includes(q);
 }
+/* Change 3 (Joe, 2026-11-03): PvP All Weapons, with no sort picked, runs by time to kill instead of by weapon type.
+   Weapons with a TTK (autos, hand cannons, pulses, scouts, sidearms, SMGs, from Hugo's chart, best with their perks)
+   come first, fastest at the top; ties go to the faster base TTK, then the better tier. Everything without a TTK
+   follows in Pride's tier order, S first, then his rank. */
+const TTK_BEST = w => w.ttk && typeof w.ttk.best === "number" ? w.ttk.best : null;
+function pvpAllOrder(a, b){
+  const ta = TTK_BEST(a), tb = TTK_BEST(b);
+  if((ta === null) !== (tb === null)) return ta === null ? 1 : -1;
+  const tier = (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9);
+  if(ta !== null) return (ta - tb) || (a.ttk.base - b.ttk.base) || tier || a.rank - b.rank || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]);
+  return tier || a.rank - b.rank || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]);
+}
 function sortList(list){
+  const pvpAll = isPvp() && S.ammo === "all";
   return list.slice().sort((a,b) => {
     for(const s of S.sorts){
       let c;
@@ -1850,6 +1998,7 @@ function sortList(list){
       else c = String(a[s.key]).localeCompare(String(b[s.key]));
       if(c) return c * s.dir;
     }
+    if(pvpAll) return pvpAllOrder(a, b);
     return ((a.a === "exotic") - (b.a === "exotic")) || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]) || a.rank - b.rank;
   });
 }
@@ -1866,7 +2015,7 @@ function weaponList(mode){
   if(q) items = items.filter(w => matchesQuery(w, q));
   items = sortList(items);
   const all = scope("all");
-  const obtained = all.filter(w => isObtained(marks[w.id])).length;
+  const obtained = all.filter(w => ownedCount(w) > 0).length;
   const head = `<div class="result"><span>Showing ${items.length} of ${total}</span><span class="rc-prev" ${BUNGIE_LINKED ? "hidden" : ""}><span>Sample rolls</span><button type="button" class="rc-switch" data-act="rc-preview" aria-pressed="${PREVIEW}" title="Made up example copies that show how the report cards look until Bungie account sync is connected">${PREVIEW ? "On" : "Off"}</button></span><span>${obtained} / ${all.length} obtained here</span></div>`;
   if(!items.length) return head + `<div class="empty-state"><strong>No matches</strong><span>Nothing here fits the current search, status and filters.</span></div>`;
   const th = (k, l) => {
@@ -1878,7 +2027,7 @@ function weaponList(mode){
   const rows = items.map(w => {
     const m = marks[w.id], open = !!S.open[w.id];
     const rowsN = Math.max(w.p1.length, w.p2.length, 1);
-    const nameBlock = `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button>${rcIcons(w)}</div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div><button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>`;
+    const nameBlock = `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button>${ownBox(w)}<button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="nm-rc">${rcIcons(w)}</div><div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div></div>`;
     const notes = open ? [w.frameNote, ...w.stats.map(s => s[3])].filter(Boolean) : [];
     const detailGrid = open ? detailPanel(w) : "";
     if(PHONE.matches){
@@ -2326,18 +2475,19 @@ document.addEventListener("click", e => {
     case "asort": S.aSort = k; render(); return;
     case "mode": if(k !== MODE){
       const was = Object.entries(S.rc).filter(([, v]) => v).map(([i, v]) => [BYID[i], v]).filter(([w]) => w);
-      applyMode(k); fixScope(); S.open = {};
+      applyMode(k); fixScope(); S.open = {}; S.cm = {};
       S.rc = {};
       was.forEach(([w, v]) => { const t = TWIN[MODE][rkeyOf(w)]; if(!t) return;
         const has = m => ((reportCard(t).cards[m] || {}).list || []).length;
-        S.rc[t.id] = v === "trash" ? (has("trash") ? "trash" : has(MODE) ? MODE : null) : has(MODE) ? MODE : has(v) ? v : null; });
+        S.rc[t.id] = v === "all" ? (has("all") ? "all" : null) : v === "trash" ? (has("trash") ? "trash" : has(MODE) ? MODE : null) : has(MODE) ? MODE : has(v) ? v : null; });
       persist(); render(); scrollTo({top:0}); } return;
     case "acls": if(armorCls !== k){ armorCls = k; persist(); render(); } return;
     case "atag": S.aTags = S.aTags.includes(k) ? S.aTags.filter(x => x !== k) : S.aTags.concat(k); render(); return;
     case "atag-clear": S.aTags = []; render(); return;
     case "vsub": S.vaultSub = k; S.aStat = "all"; render(); return;
     case "open": S.open[id] = !S.open[id]; refreshList(); return;
-    case "rc": S.rc[id] = S.rc[id] === k ? null : k; refreshList(); return;
+    case "rc": S.rc[id] = S.rc[id] === k ? null : k; if(S.view === "drops") render(); else refreshList(); return;
+    case "cmode": { const cid = t.dataset.cid; if(!cid) return; S.cm[cid] = k; if(S.view === "drops") render(); else refreshList(); return; }
     case "rc-preview": PREVIEW = !PREVIEW; local.set(LPREV, PREVIEW); render(); return;
     case "shot": shotModal(id); return;
     case "status":
