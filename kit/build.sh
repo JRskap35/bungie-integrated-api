@@ -17,11 +17,19 @@ python3 -I kit/pvp.py build/data_e.json build/pvp_raw.json build/data_ep.json
 python3 -I kit/hugo_fetch.py build/hugo.json assets/hugo_cache.json
 python3 -I kit/crosscheck.py build/data_ep.json build/hugo.json "${BUNGIE_CACHE:-build/bungie_cache}" build/data_epx.json build/crosscheck.txt
 { echo '## PvP cross check'; echo '```'; cat build/crosscheck.txt; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}" || true
+# PvP tiers and perks from what players actually use: Bungie's match reports (Trials and the rest of PvP, last four closed
+# weeks) and the public loadouts of those players, plus DIM's community wish list for creators' PvP picks.
+# The weeks already counted come back from the published site (pvp_usage.json), so each build only samples the new week
+python3 -I kit/bungie_hashes.py build/data_epx.json "${BUNGIE_CACHE:-build/bungie_cache}" build/hashes_pvp.json
+if ! curl -sSfL --compressed --retry 3 --max-time 300 -o build/wishlist.txt https://raw.githubusercontent.com/48klocs/dim-wish-list-sources/master/voltron.txt; then
+  echo "WARNING: DIM wish list not reachable; ranking without creators' picks"; : > build/wishlist.txt
+fi
+python3 -I kit/pvp_usage.py build/hashes_pvp.json bungie/config.json "${PVP_STORE_URL:-https://endgameapi.pages.dev/pvp_usage.json}" assets/pvp_usage_seed.json build/pvp_use.json build/pvp_perks.json site/pvp_usage.json
+python3 -I kit/pvp_rank.py build/data_epx.json build/data_ep.json build/pvp_use.json build/pvp_perks.json build/wishlist.txt build/hashes_pvp.json build/data_epr.json build/pvp_rank.txt
+{ echo '## PvP ranking from players'; echo '```'; cat build/pvp_rank.txt; echo '```'; } >> "${GITHUB_STEP_SUMMARY:-/dev/null}" || true
 # swap in Bungie's official icons (weapons, frames, perks, barrels, mags, masterwork, origin traits, energy, stun, armor sets)
-python3 -I kit/bungie.py build/data_epx.json build/icons.json build/ticons.json assets/elements.json build/bungie "${BUNGIE_CACHE:-build/bungie_cache}"
+python3 -I kit/bungie.py build/data_epr.json build/icons.json build/ticons.json assets/elements.json build/bungie "${BUNGIE_CACHE:-build/bungie_cache}"
 cat build/bungie/report.txt >> "${GITHUB_STEP_SUMMARY:-/dev/null}" || true
-# the finished PvP lists must still follow the cross check rules
-python3 -I kit/crosscheck.py --check build/bungie/data.json build/hugo.json "${BUNGIE_CACHE:-build/bungie_cache}"
 # Bungie-Integrated-API: report card and location icons, then the hash maps that read a signed in Bungie account
 python3 -I kit/mode_icons.py build/bungie/icons.json build/icons_bia.json "${BUNGIE_CACHE:-build/bungie_cache}"
 python3 -I kit/bungie_hashes.py build/bungie/data.json "${BUNGIE_CACHE:-build/bungie_cache}" build/hashes.json

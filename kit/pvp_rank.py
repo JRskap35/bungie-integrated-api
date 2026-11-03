@@ -1,8 +1,10 @@
 """PvP tiers and perk order from what players actually use (Joe, 2026-11-03).
 Usage: python3 -I pvp_rank.py data.json pride.json usage.json perks.json wishlist.txt hashes.json OUT.json REPORT.txt
 
-data.json      the build's data (its pvp section is rewritten)
-pride.json     the same data straight from Pride's sheet (pvp.py output), for Pride's own perk lists and tiers
+data.json      the build's data after crosscheck.py (its pvp section is rewritten): Pride's lists checked against Bungie
+               (spellings, columns, perks that can't roll removed), Hugo's kill times for the TTK box
+pride.json     the same data straight from Pride's sheet (pvp.py output), for Pride's own tiers and to tell Pride's picks
+               from perks the cross check added for kill time
 usage.json     kills per weapon from Bungie match reports (pvp_usage.py): Trials and Crucible, players, wins, by week
 perks.json     equipped parts of players who got PvP kills with each weapon (pvp_usage.py)
 wishlist.txt   DIM's community wish list (PvP rolls by Pandapaxxy, Mercules, YeezyGT, Legoleflash and others)
@@ -28,7 +30,7 @@ key = lambda w: w["arch"] + "|" + nn(w["name"])
 TIERS = "SABCDEF"; CAP = {"p1": 3, "p2": 3, "barrel": 2, "mag": 2}
 DUEL = {"headseeker", "openingshot", "explosivepayload", "timedpayload", "precisioninstrument"}
 CUTS = [(.10, "S"), (.25, "A"), (.45, "B"), (.70, "C"), (1.01, "D")]
-TOT, WEEKTOT = U["TOT"], U["WEEKTOT"]
+TOT = {g: max(1, v) for g, v in U["TOT"].items()}; WEEKTOT = U["WEEKTOT"]
 mwkey = lambda n: re.sub(r"\s+speed$", "", re.sub(r"^(masterworked:|tier\s*\d+\s*:)\s*", "", (n or "").strip().lower()))
 
 # ---- community creators' PvP picks per weapon and column
@@ -67,11 +69,13 @@ pride_by = {w["id"]: w for w in pr["pvp"]["weapons"]}
 PW = d["pvp"]["weapons"]; report = []; perk_changes = 0
 for w in PW:
     k = key(w); p0 = pride_by.get(w["id"], w); u = usage(k); w["use"] = u; w["_ps"] = pscore(u)
-    w.setdefault("pr", [p0.get("tier"), p0.get("rank")])
+    w["pr"] = [p0.get("tier"), p0.get("rank")]
+    on_sheet = {nn(pname(x)) for f in ("p1", "p2", "barrel", "mag") for x in live(p0.get(f))}
+    checked = {f: [pname(x) for x in live(w.get(f)) if nn(pname(x)) in on_sheet] for f in ("p1", "p2", "barrel", "mag")}
     pk = PK.get(k) or {}; n = pk.get("n", 0); conf = min(1.0, n / 25); c = comm.get(k); ns = len(c["src"]) if c else 0
     tt = (w.get("ttk") or {}); base = tt.get("base"); fast = {nn(p): t for p, t in (tt.get("perks") or {}).items() if nn(p) in DUEL and base and t < base - 1e-6}
     for i, f in enumerate(("p1", "p2")):
-        pride = [pname(x) for x in live(p0.get(f))]
+        pride = checked[f]
         cand = collections.OrderedDict((nn(x), x) for x in pride)
         cnt = pk.get("c%d" % (i + 1), {})
         if c:
@@ -88,7 +92,7 @@ for w in PW:
         if [pname(x) for x in live(w.get(f))] != new: perk_changes += 1
         w[f] = new
     for f in ("barrel", "mag"):
-        cnt = pk.get(f, {}); pride = [pname(x) for x in live(p0.get(f))]
+        cnt = pk.get(f, {}); pride = checked[f]
         top = max(cnt.items(), key=lambda kv: kv[1]) if cnt else None
         lst = pride + ([top[0]] if top and n >= 10 and top[1] >= 0.25 * n and nn(top[0]) not in {nn(x) for x in pride} else [])
         lst = [x for _, _, x in sorted((-next((v for nm, v in cnt.items() if nn(nm) == nn(x)), 0), j, x) for j, x in enumerate(lst))]
@@ -122,7 +126,7 @@ for arch in sorted({w["arch"] for w in PW}):
     for w in ws:
         if w.get("tierBy") != "players":
             e = TIERS.index(w["pr"][0] or "C")
-            w["tier"] = TIERS[3 if e <= 1 else min(6, max(e, 3) + 1)]; w["tierBy"] = "few players"
+            w["tier"] = TIERS[3 if e <= 2 else min(6, e + 1)]; w["tierBy"] = "few players"
     for i, w in enumerate(sorted(ws, key=lambda w: (TIERS.index(w["tier"]), -w["_ps"], w["pr"][1] or 99)), 1):
         w["rank"] = i
         if w["tier"] != w["pr"][0]: moved.append(f"{w['name']} ({arch}) {w['pr'][0]} to {w['tier']}")
