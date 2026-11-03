@@ -1,4 +1,4 @@
-name: Build and publish Bungie-Integrated-API
+name: Build and publish Endgame API
 
 on:
   schedule:
@@ -43,16 +43,18 @@ jobs:
         run: bash cloud/deploy.sh
       - name: Rebuild from TheAegisRelic's and Pride Eternal's sheets and Bungie's API
         env:
-          SITE_URL: https://jrskap35.github.io/bungie-integrated-api/
+          SITE_URL: https://endgameapi.pages.dev/
         run: bash kit/build.sh
       - name: Publish to Cloudflare Pages (endgameapi.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true
         run: bash cloud/deploy_pages.sh
+      - name: Forward the old GitHub address to endgameapi.pages.dev
+        run: bash cloud/github_redirect.sh
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: build/ghsite
 
   deploy:
     needs: build

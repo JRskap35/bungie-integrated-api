@@ -2,7 +2,7 @@
 
 A Destiny 2 weapon and armor tracker with a PvE mode built on **TheAegisRelic's** [Destiny 2: Endgame Analysis](https://docs.google.com/spreadsheets/d/1JM-0SlxVDAi-C6rGVlLxa-J1WGewEeL8Qvq4htWZHhY/edit) and a PvP mode built on **Pride Eternal / Finnald's** [Destiny 2 PvP Spreadsheet](https://docs.google.com/spreadsheets/d/1TVgtTRWNGEPi6OMlTLxXFSKUTi_ycwykhwuw8EW_jJ0/edit).
 
-**Live site:** https://jrskap35.github.io/endgame-api/
+**Live site:** https://endgameapi.pages.dev (the old address, jrskap35.github.io/bungie-integrated-api, forwards there)
 
 Made by SteelToe.
 
