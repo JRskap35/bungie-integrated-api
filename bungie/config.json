@@ -1,10 +1,1 @@
-{
- "apiKey": "bcba26b6f4b4410a833586392db086f7",
- "clientId": "56437",
- "siteOrigins": [
-  "https://endgameapi.pages.dev",
-  "https://jrskap35.github.io"
- ],
- "bungieOrigin": "https://endgameapi.pages.dev",
- "pvpClosed": true
-}
+{"apiKey":"bcba26b6f4b4410a833586392db086f7","clientId":"56437","siteOrigins":["https://endgameapi.pages.dev","https://jrskap35.github.io"],"bungieOrigin":"https://endgameapi.pages.dev"}
