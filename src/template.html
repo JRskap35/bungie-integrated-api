@@ -1937,7 +1937,7 @@ function render(){
   document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.view === S.view ? "page" : "false"));
   const ms = document.getElementById("modeSeg");
   if(ms){ ms.hidden = !PVPD; ms.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === MODE)); }
-  const got = WEAPONS.filter(w => isObtained(marks[w.id])).length;
+  const got = WEAPONS.filter(w => ownedCount(w) > 0).length;
   $("#navCount").textContent = got ? got : "";
   let html = "";
   if(S.view === "drops")   html = dropsView();
@@ -2195,14 +2195,18 @@ function armorList(mode){
 /* ---------- vault ---------- */
 function vaultView(){
   const total = WEAPONS.length;
-  const god = WEAPONS.filter(w=>marks[w.id]==="god").length;
-  const semi = WEAPONS.filter(w=>marks[w.id]==="semi").length;
+  // the weapon counters follow the copies on the account (or sample rolls, or your own marks when neither is on),
+  // graded for the mode being viewed, the same way the God Roll and Semi-God filters do (Joe, 2026-11-03)
+  const st = new Map(WEAPONS.map(w => [w, (reportCard(w).cards[MODE] || {}).state]));
+  const owned = WEAPONS.filter(w => ownedCount(w) > 0).length;
+  const god = WEAPONS.filter(w => st.get(w) === "god").length;
+  const semi = WEAPONS.filter(w => st.get(w) === "semi").length;
   const look = WEAPONS.filter(w=>marks[w.id]==="looking").length;
   const pieces = SETS.reduce((a,s)=>a+piecesHave(s),0), piecesTotal = SETS.length*5;
   const full = SETS.filter(s=>piecesHave(s)===5).length;
   const pct = (a,b) => b ? Math.round(a/b*100) : 0;
   const summary = `<div class="summary">
-    <div class="stat"><span class="k">Weapons obtained</span><span class="v">${god+semi}<small> / ${total}</small></span><span class="bar"><i style="width:${pct(god+semi,total)}%"></i></span></div>
+    <div class="stat"><span class="k">Weapons obtained</span><span class="v">${owned}<small> / ${total}</small></span><span class="bar"><i style="width:${pct(owned,total)}%"></i></span></div>
     <div class="stat"><span class="k">God rolls</span><span class="v" style="color:var(--god)">${god}</span></div>
     <div class="stat"><span class="k">Semi-god rolls</span><span class="v" style="color:var(--semi)">${semi}</span></div>
     <div class="stat"><span class="k">Weapons looking for</span><span class="v" style="color:var(--look)">${look}</span></div>
@@ -2210,7 +2214,7 @@ function vaultView(){
     <div class="stat"><span class="k">Full sets</span><span class="v">${full}<small> / ${SETS.length}</small></span></div>
     <div class="stat"><span class="k">Armor looking for</span><span class="v" style="color:var(--look)">${lookTotal()}<small> pieces</small></span></div>
   </div>`;
-  const byAmmo = `<div class="ammo-progress">${AMMO.map(a => { const ws = WEAPONS.filter(w => w.a === a.key); const g = ws.filter(w => isObtained(marks[w.id])).length;
+  const byAmmo = `<div class="ammo-progress">${AMMO.map(a => { const ws = WEAPONS.filter(w => w.a === a.key); const g = ws.filter(w => ownedCount(w) > 0).length;
     return `<div class="ap" style="--ammo:var(--ammo-${a.key})"><div class="ap-top"><span>${a.label}</span><span class="count">${g} / ${ws.length}</span></div><span class="bar"><i style="width:${pct(g,ws.length)}%"></i></span></div>`; }).join("")}</div>`;
   const sub = `<div class="subtabs" role="group" aria-label="Vault section">
     <button type="button" class="subtab" data-act="vsub" data-k="weapons" aria-pressed="${S.vaultSub==="weapons"}">Weapons</button>
