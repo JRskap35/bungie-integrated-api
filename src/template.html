@@ -911,6 +911,7 @@ document.documentElement.style.setProperty("--bgimg", 'url("__BG__")');
    so both modes' marks live side by side in one saved progress; armor pieces are the same items in both modes. ---- */
 const AMMO_BASE = [{key:"primary", label:"Primary"},{key:"special", label:"Secondary"},{key:"heavy", label:"Heavy"},{key:"other", label:"Other"}];
 const PVED = {weapons:D.weapons, sets:D.sets, ammo:D.ammo};
+const PVP_RANK_SPAN = D.pvp && D.pvp.rank ? `${D.pvp.rank.from} to ${D.pvp.rank.to}` : "";
 const PVPD = D.pvp ? (() => { const by = Object.fromEntries(D.pvp.sets.map(s => [s.id, s]));
   return {weapons:D.pvp.weapons, ammo:D.pvp.ammo, sets:D.sets.map(s => ({...s, bonuses:(by[s.id] || {bonuses:[]}).bonuses}))}; })() : null;
 let AMMO, AMMO_TABS, AMMO_OF_ARCH, WEAPONS, SETS, SETBY, AMMO_LABEL, SET_TAGS, ARCH_ORDER, SORT_FIELDS, FILTER_FIELDS, MODE = "pve";
@@ -1910,6 +1911,7 @@ function dBox(label, items, cls){
   return `<section class="dbox ${cls||""}"><h4>${label}</h4><ul>${items.length ? items.join("") : '<li class="none">None</li>'}</ul></section>`;
 }
 function detailPanel(w){
+  const tw = w.id.startsWith("pvp-") ? TWIN.pve[rkeyOf(w)] : w, up = tw ? tw.up : null, modes = tw ? tw.modes : null;
   const list = arr => arr.map(x => { const n = perkName(x), id = (w.pi||{})[n]; return dItem(n, id ? iconURL("t", id) : "", Array.isArray(x)); });
   const mw = (w.mw || "").split("/").map(x => x.trim()).filter(Boolean).map(st => { const id = (w.mwi||{})[st]; return dItem(st, id ? iconURL("t", id) : "", false); });
   const perks = arr => arr.map(x => { const n = perkName(x), id = (w.pi||{})[n]; return dItem(n, id ? iconURL("t", id) : "", Array.isArray(x)); });
@@ -1930,12 +1932,10 @@ function detailPanel(w){
     <div class="dmeta">
       ${w.stats.length ? `<div class="dstat"><h4>${esc(statLabel)}</h4>${statsCell(w)}</div>` : ""}
       ${w.season ? `<div class="dstat"><h4>Season</h4><b>S${esc(w.season)}</b></div>` : ""}
-      ${w.id.startsWith("pvp-")
-        ? (w.craft ? `<div class="dstat"><h4>Craftable</h4><b class="up ${w.craft==="Yes"?"yes":""}">${esc(w.craft)}</b></div>` : "")
-        : `<div class="dstat"><h4>Upgrade</h4><b class="up ${w.up==="Yes"?"yes":""}">${w.up==="Yes"?"⬆ ":""}${esc(w.up)}</b></div>`}
-      ${w.modes && Object.keys(w.modes).length ? `<div class="dstat dmodes"><h4>Playlists</h4><div class="modes">${Object.entries(w.modes).map(([k,v]) => `<span class="mode-r r-${{"✔":"y","✖":"n","▲":"m","!":"s"}[v]||"o"}" title="${esc(k)}: ${esc({"✔":"Optimal","✖":"Not recommended","▲":"Viable","!":"Situational"}[v]||v)}"><b>${esc(v)}</b>${esc(k)}</span>`).join("")}</div></div>` : ""}
-      ${w.shop ? `<div class="dstat dshop"><h4>Shopping List${w.shop.priority?` · ${esc(w.shop.priority)}`:""}</h4><b>${esc(w.shop.role)}</b></div>` : ""}
-      ${w.ttk ? `<div class="dstat dttk" title="Time to kill in PvP, optimal shots from full health (Hugo's WeaponStat Chart and the Destiny Data Compendium)"><h4>TTK</h4><b>${w.ttk.best.toFixed(2)}s</b><div class="ttkl">${w.ttk.by.length ? `<span>with ${w.ttk.by.map(esc).join(" or ")}</span><span>${w.ttk.base.toFixed(2)}s with no perk active</span>` : `<span>no listed perk lowers it</span>`}</div></div>` : ""}
+      ${/* PvP shows the same boxes as PvE (Joe, 2026-11-03); Upgrade and Playlists come from the same weapon on Aegis's sheet */""
+      }${up != null ? `<div class="dstat"><h4>Upgrade</h4><b class="up ${up==="Yes"?"yes":""}">${up==="Yes"?"⬆ ":""}${esc(up)}</b></div>` : ""}
+      ${modes && Object.keys(modes).length ? `<div class="dstat dmodes"><h4>Playlists</h4><div class="modes">${Object.entries(modes).map(([k,v]) => `<span class="mode-r r-${{"✔":"y","✖":"n","▲":"m","!":"s"}[v]||"o"}" title="${esc(k)}: ${esc({"✔":"Optimal","✖":"Not recommended","▲":"Viable","!":"Situational"}[v]||v)}"><b>${esc(v)}</b>${esc(k)}</span>`).join("")}</div></div>` : ""}
+      ${tw && tw.shop ? `<div class="dstat dshop"><h4>Shopping List${tw.shop.priority?` · ${esc(tw.shop.priority)}`:""}</h4><b>${esc(tw.shop.role)}</b></div>` : ""}
       <div class="dstat dlook"><h4>Looking for</h4><button type="button" class="look-btn ${marks[w.id] === "looking" ? "on" : ""}" data-act="look" data-id="${w.id}" aria-pressed="${marks[w.id] === "looking"}">${I.looking}<span>${marks[w.id] === "looking" ? "On your list" : "Add to list"}</span></button></div>
       <div class="dnotes"><h4>Notes</h4><p>${esc(w.notes) || '<span class="dim">No notes</span>'}</p>${notes.map(n => `<div class="foot">[${n}] ${esc(NOTES[n]||"")}</div>`).join("")}</div>
     </div>
@@ -1961,9 +1961,10 @@ function statsCell(w){
 function tierCell(t, rank){ return `<div class="tier-cell"><span class="tier" style="--c:${tierVar(t)}">${esc(t)}</span>${rank!=null?`<span class="rank">#${rank}</span>`:""}</div>`; }
 
 /* ================= RENDER ================= */
-/* PvP is closed while its roll rules are reworked (Joe, 2026-11-03): with the toggle on PvP, the Weapons, Armor and Vault
-   pages show this notice instead. Set PVP_CLOSED to false to open it again; nothing else needs to change. */
-const PVP_CLOSED = true;
+/* PvP is closed on the website while its roll rules are reworked (Joe, 2026-11-03): with the toggle on PvP, the Weapons,
+   Armor and Vault pages show this notice instead. It is set by "pvpClosed" in bungie/config.json, so the Claude copy (no
+   Bungie config) shows PvP for review while the website keeps the notice until that flag comes out. */
+const PVP_CLOSED = !!(BUNGIE && BUNGIE.pvpClosed);
 function pvpConstruction(){
   return `<section class="uc" aria-labelledby="ucH">
     <div class="uc-card">
@@ -2076,17 +2077,12 @@ const flat = a => a.map(x => Array.isArray(x) ? x[0] : x).join(" ");
 function matchesQuery(w, q){
   return (w.name + " " + w.var + " " + w.arch + " " + archName(w.arch) + " " + flat(w.p1) + " " + flat(w.p2) + " " + w.origin + " " + flat(w.barrel) + " " + flat(w.mag)).toLowerCase().includes(q);
 }
-/* Change 3 (Joe, 2026-11-03): PvP All Weapons, with no sort picked, runs by time to kill instead of by weapon type.
-   Weapons with a TTK (autos, hand cannons, pulses, scouts, sidearms, SMGs, from Hugo's chart, best with their perks)
-   come first, fastest at the top; ties go to the faster base TTK, then the better tier. Everything without a TTK
-   follows in Pride's tier order, S first, then his rank. */
-const TTK_BEST = w => w.ttk && typeof w.ttk.best === "number" ? w.ttk.best : null;
+/* PvP All Weapons, with no sort picked (Joe, 2026-11-03): tiers come from what players use, so the list runs S first,
+   then by how much each weapon is used in PvP (Trials counts 60%, Crucible 40%), across every weapon type. Weapons with
+   too few players to rate follow in their tier by Pride's rank. (This replaced the earlier order by time to kill.) */
+const PVP_USE = w => w.use ? 0.6 * w.use.t + 0.4 * w.use.c : 0;
 function pvpAllOrder(a, b){
-  const ta = TTK_BEST(a), tb = TTK_BEST(b);
-  if((ta === null) !== (tb === null)) return ta === null ? 1 : -1;
-  const tier = (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9);
-  if(ta !== null) return (ta - tb) || (a.ttk.base - b.ttk.base) || tier || a.rank - b.rank || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]);
-  return tier || a.rank - b.rank || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]);
+  return ((TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9)) || (PVP_USE(b) - PVP_USE(a)) || a.rank - b.rank || (ARCH_ORDER[a.arch] - ARCH_ORDER[b.arch]);
 }
 function sortList(list){
   const pvpAll = isPvp() && S.ammo === "all";
