@@ -834,6 +834,16 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .piece:hover{border-color:var(--mode)}
 .acard .bonuses{border-top-color:var(--mrow)}
 .empty-state{border-color:var(--mline)}
+
+/* PvP under construction notice */
+.uc{display:grid;place-items:center;padding:56px 0 72px}
+.uc-card{width:min(560px,100%);text-align:center;border:1px solid var(--mline);border-top:3px solid var(--mode);background:color-mix(in srgb,var(--mode) 6%,var(--veil));border-radius:3px;padding:34px 28px 30px;display:grid;justify-items:center;gap:10px;box-shadow:0 0 28px color-mix(in srgb,var(--mode) 14%,transparent)}
+.uc-ico{width:56px;height:56px;background:var(--mode);-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--mode) 55%,transparent))}
+.uc-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mtext)}
+.uc h2{margin:0;font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg)}
+.uc p{margin:0;max-width:46ch;color:var(--muted);line-height:1.55}
+.uc .btn{margin-top:10px;background:var(--pve);border-color:var(--pve);color:#fff}
+@media (max-width:440px){.uc{padding:32px 0 48px}.uc h2{font-size:24px}.uc-card{padding:28px 18px 24px}}
 </style>
 
 <div id="bgart" aria-hidden="true"></div>
@@ -1951,6 +1961,21 @@ function statsCell(w){
 function tierCell(t, rank){ return `<div class="tier-cell"><span class="tier" style="--c:${tierVar(t)}">${esc(t)}</span>${rank!=null?`<span class="rank">#${rank}</span>`:""}</div>`; }
 
 /* ================= RENDER ================= */
+/* PvP is closed while its roll rules are reworked (Joe, 2026-11-03): with the toggle on PvP, the Weapons, Armor and Vault
+   pages show this notice instead. Set PVP_CLOSED to false to open it again; nothing else needs to change. */
+const PVP_CLOSED = true;
+function pvpConstruction(){
+  return `<section class="uc" aria-labelledby="ucH">
+    <div class="uc-card">
+      <span class="uc-ico" style="--src:url('${iconURL("n", "mpvp")}')" aria-hidden="true"></span>
+      <div class="uc-tag">PvP</div>
+      <h2 id="ucH">Under Construction</h2>
+      <p>The PvP rolls and tier list are being reworked so the best perks for each weapon are picked the right way. This part of the site will be back soon.</p>
+      <p class="dim">Everything in PvE works as usual, and your account sync, New Drops and saved progress are not affected.</p>
+      <button type="button" class="btn primary" data-act="mode" data-k="pve">Back to PvE</button>
+    </div>
+  </section>`;
+}
 function render(){
   document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.view === S.view ? "page" : "false"));
   const ms = document.getElementById("modeSeg");
@@ -1962,6 +1987,7 @@ function render(){
   if(S.view === "weapons") html = weaponBrowser("all");
   if(S.view === "armor")   html = armorBlock("all");
   if(S.view === "vault")   html = vaultView();
+  if(PVP_CLOSED && isPvp() && S.view !== "drops") html = pvpConstruction();
   closeDD();
   $("#main").innerHTML = html;
   // keep the active ammo tab, and the weapon type picked under it, in view when the tab strip scrolls (phones)
