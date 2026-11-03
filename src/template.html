@@ -1185,6 +1185,11 @@ function gradeIn(c, L){
 // how a part of a copy lights up in a mode's panel: the top listed pick is green, any other listed pick is yellow
 function partHit(f, v, L){
   if(!L || !v) return "";
+  // the origin trait the sheet names is the one to use: it lights up green when a copy can roll it (Joe, 2026-11-03)
+  if(f === "origin"){
+    const nk = x => String(x || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
+    return L.origin && L.origin !== "None" && !L.oriX && nk(L.origin) === nk(v) ? "god" : "";
+  }
   const list = f === "mw" ? mwList(L).map(mwKey) : liveNames(L[f]);
   const i = list.indexOf(f === "mw" ? mwKey(v) : v);
   return i < 0 ? "" : i === 0 ? "god" : "semi";
@@ -1790,7 +1795,7 @@ function copyGrid(base, cp, L, mode){
     ${part("Magazine", cp.mag, PART_ICON, "mag")}
     ${part("Perk 1", cp.p1, PART_ICON, "p1")}
     ${part("Perk 2", cp.p2, PART_ICON, "p2")}
-    ${part("Origin Trait", opts(cp.origin).length ? cp.origin : (base.origin && base.origin !== "None" ? base.origin : ""), ORIGIN_ICON, "")}
+    ${part("Origin Trait", opts(cp.origin).length ? cp.origin : (base.origin && base.origin !== "None" ? base.origin : ""), ORIGIN_ICON, "origin")}
     ${part("Masterwork", opts(cp.mw).map(mwClean), MW_ICON, "mw")}</div>`;
 }
 const TAG = {god:"God Roll", semi:"Semi-God Roll", none:"Safe to dismantle"};
