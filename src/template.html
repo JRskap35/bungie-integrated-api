@@ -321,6 +321,10 @@ tr.rcrow td{padding-top:2px}
 .drops-sub{margin:4px 0 0;color:var(--muted);font-size:14px}
 .drops{display:grid;gap:10px}
 .drop{border:1px solid color-mix(in srgb,var(--mode) 55%,var(--line-2));background:var(--veil);border-radius:3px;padding:12px;display:grid;gap:10px}
+/* a drop's frame shows its verdict across both modes, whichever toggle is on: green god roll, yellow semi-god roll, red safe to dismantle */
+.drop.v-god{border-color:var(--god);box-shadow:0 0 0 1px rgba(63,220,134,.25),0 0 14px rgba(63,220,134,.22)}
+.drop.v-semi{border-color:var(--semi);box-shadow:0 0 0 1px rgba(243,198,74,.22),0 0 12px rgba(243,198,74,.18)}
+.drop.v-trash{border-color:#ef8a7e;box-shadow:0 0 0 1px rgba(239,138,126,.22),0 0 12px rgba(239,138,126,.16)}
 .drop-top{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
 .drop-top .drop-name{min-width:0}
 .drop-where{display:flex;align-items:center;gap:22px}
@@ -1622,7 +1626,8 @@ function dropCard(d){
     : ["pve", "pvp"].filter(m => keep(g[m])).map(m => `<span class="rc-tag g-${g[m]}">${RC_NAME[m]} ${TAG[g[m]]}</span>`).join(`<span class="dim">·</span>`);
   const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
-  return `<article class="drop">
+  const best = trash ? "trash" : g.pve === "god" || g.pvp === "god" ? "god" : "semi";
+  return `<article class="drop v-${best}">
     <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${tierCell(w.tier, w.rank)}</div>
