@@ -322,7 +322,7 @@ button.rkey:disabled{opacity:.35;cursor:not-allowed}
 .rc-copy-h{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;font-size:12.5px}
 .rc-tag{font-family:var(--font-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
 .rc-tag.g-god{color:var(--god)} .rc-tag.g-semi{color:var(--semi)} .rc-tag.g-none{color:#ef8a7e}
-.rc-parts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.rc-parts{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .rc-part{border:1px solid var(--line);border-radius:3px;padding:6px 8px;display:grid;gap:6px;align-content:start;min-width:0;background:rgba(255,255,255,.02)}
 .rc-pl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .rc-pl i{font-style:normal;color:var(--muted);border:1px solid var(--line-2);border-radius:7px;padding:0 4px;margin-left:3px}
@@ -1089,6 +1089,15 @@ ALL_WEAPONS.forEach(w => {
 });
 const liveNames = arr => (arr || []).filter(x => !Array.isArray(x)).map(x => x);
 const mwList = w => (w && w.mw || "").split("/").map(x => x.trim()).filter(Boolean);
+// Bungie names a masterwork by its tier ("Tier 3: Reload Speed"); the sheets name the stat ("Reload"). mwClean keeps the
+// stat as the game words it, mwKey lines both up ("Reload Speed" = "Reload") for highlights and icons (Joe, 2026-11-03)
+const mwClean = n => String(n || "").replace(/^Masterworked:\s*/i, "").replace(/^Tier\s*\d+\s*:\s*/i, "").trim();
+const mwKey = n => mwClean(n).toLowerCase().replace(/\s+speed$/, "");
+const MW_ICON_K = {}, ORIGIN_ICON = {};
+ALL_WEAPONS.forEach(w => {
+  Object.entries(w.mwi || {}).forEach(([n, id]) => { if(!MW_ICON_K[mwKey(n)]) MW_ICON_K[mwKey(n)] = id; });
+  if(w.origin && w.oi && !ORIGIN_ICON[w.origin]) ORIGIN_ICON[w.origin] = w.oi;
+});
 const RC_SYNC = {};                  // Bungie account sync will fill this: weapon key -> [{barrel, mag, p1, p2, mw}]
 const LPREV = "bia.preview.v1";
 let PREVIEW = local.get(LPREV, true) !== false;
@@ -1176,8 +1185,8 @@ function gradeIn(c, L){
 // how a part of a copy lights up in a mode's panel: the top listed pick is green, any other listed pick is yellow
 function partHit(f, v, L){
   if(!L || !v) return "";
-  const list = f === "mw" ? mwList(L) : liveNames(L[f]);
-  const i = list.indexOf(v);
+  const list = f === "mw" ? mwList(L).map(mwKey) : liveNames(L[f]);
+  const i = list.indexOf(f === "mw" ? mwKey(v) : v);
   return i < 0 ? "" : i === 0 ? "god" : "semi";
 }
 function reportCard(w){
@@ -1496,7 +1505,7 @@ async function bProfile(){
     let k = HASH.w[it.itemHash]; if(!k) continue;
     if(Array.isArray(k)) k = k[0];
     const sk = (sockets[it.itemInstanceId] || {}).sockets || [], rp = (reus[it.itemInstanceId] || {}).plugs || {};
-    const c = {cid: it.itemInstanceId, itemHash: it.itemHash, loc, charId: cid, equipped, barrel: [], mag: [], p1: [], p2: [], mw: ""};
+    const c = {cid: it.itemInstanceId, itemHash: it.itemHash, loc, charId: cid, equipped, barrel: [], mag: [], p1: [], p2: [], origin: [], mw: ""};
     let col = 0;
     sk.forEach((sock, i) => {
       const cur = sock.plugHash && HASH.p[sock.plugHash];
@@ -1507,7 +1516,8 @@ async function bProfile(){
       if(kd === "perk"){ if(col < 2) c[col ? "p2" : "p1"] = names; col++; }
       else if(kd === "barrel") c.barrel = names;
       else if(kd === "mag") c.mag = names;
-      else if(kd === "mw") c.mw = cur[0];
+      else if(kd === "origin") c.origin = names;
+      else if(kd === "mw") c.mw = mwClean(cur[0]);
     });
     (out[k] = out[k] || []).push(c);
   }
@@ -1760,7 +1770,7 @@ function modeBadges(h){
   return `<span class="mbadges" title="${tip}" aria-label="${tip}">${on.map(m => `<span class="mb mb-${m}" style="--src:url('${iconURL("n", "m" + m)}')"></span>`).join("")}</span>`;
 }
 function copyGrid(base, cp, L, mode){
-  const ic = (n, map) => n && map[n] ? iconURL("t", map[n]) : "";
+  const ic = (n, map) => !n || !map ? "" : map[n] ? iconURL("t", map[n]) : map === MW_ICON && MW_ICON_K[mwKey(n)] ? iconURL("t", MW_ICON_K[mwKey(n)]) : "";
   const part = (label, value, map, f, fixedIcon) => {
     const list = opts(value); if(!list.length) list.push("");
     const hm = list.map(n => ({pve: f ? partHit(f, n, L && L.pve) : "", pvp: f ? partHit(f, n, L && L.pvp) : ""}));
@@ -1780,7 +1790,8 @@ function copyGrid(base, cp, L, mode){
     ${part("Magazine", cp.mag, PART_ICON, "mag")}
     ${part("Perk 1", cp.p1, PART_ICON, "p1")}
     ${part("Perk 2", cp.p2, PART_ICON, "p2")}
-    ${part("Masterwork", cp.mw, MW_ICON, "mw")}</div>`;
+    ${part("Origin Trait", opts(cp.origin).length ? cp.origin : (base.origin && base.origin !== "None" ? base.origin : ""), ORIGIN_ICON, "")}
+    ${part("Masterwork", opts(cp.mw).map(mwClean), MW_ICON, "mw")}</div>`;
 }
 const TAG = {god:"God Roll", semi:"Semi-God Roll", none:"Safe to dismantle"};
 /* Change 2 (Joe, 2026-11-03): a cleaner owned copies dropdown. No title line. Each copy is one block: its location tile
@@ -1894,10 +1905,10 @@ function detailPanel(w){
       ${dBox("Frame", frame, "info")}
       ${dBox("Barrel", list(w.barrel))}
       ${dBox("Mag", list(w.mag))}
-      ${dBox("Masterwork", mw)}
       ${dBox("Perk 1", perks(w.p1), "dup")}
       ${dBox("Perk 2", perks(w.p2), "dup")}
       ${dBox("Origin Trait", origin)}
+      ${dBox("Masterwork", mw)}
     </div>
     <div class="dmeta">
       ${w.stats.length ? `<div class="dstat"><h4>${esc(statLabel)}</h4>${statsCell(w)}</div>` : ""}
