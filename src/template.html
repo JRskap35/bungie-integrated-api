@@ -801,6 +801,35 @@ const isPvp = () => MODE === "pvp";
 // activities: split combined sources ("Xur, Dares") and tidy spelling variants from the sheet
 const ACT_FIX = {"Cosmodrom e":"Cosmodrome","NODE. OVRD. AVALON":"NODE.OVRD. AVALON","Kell's Fall?":"Kell's Fall","?":"Unknown","":"Unknown"};
 const ALL_WEAPONS = D.weapons.concat(PVPD ? PVPD.weapons : []);
+// PvP rows use the same filter values as PvE. Pride's sheet words energy, frame, season and source its own way
+// ("Rapid-Fire", "Trials of Osiris / Saint-14 Vendor"), so a filter picked in PvE found nothing after switching to PvP.
+// Each PvP weapon takes those fields from the same weapon on the PvE sheet; weapons only Pride lists get the same wording.
+(() => {
+  if(!PVPD) return;
+  const nm = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const byKey = {}, byName = {};
+  D.weapons.forEach(w => { byKey[w.arch + "|" + nm(w.name)] ??= w; byName[nm(w.name)] ??= w; });
+  const FRAME = {"Rapid-Fire":"Rapid", "Rapid Fire Slug":"Rapid Slug", "Support Frame (Healing)":"Support", "Wave Sword":"Wave", "Disruption Weapon":"Disruption"};
+  const tidyFrame = f => FRAME[f] || String(f || "").replace(/\s*\(.*\)\s*$/, "").replace(/ Heat$/, "");
+  const VENDORS = ["Banshee", "Xur", "Zavala", "Shaxx"];
+  const tidySrc = x => {
+    x = x.trim().replace(/\s+(Raid|Dungeon|Destination|Loot Pool)$/i, "");
+    const v = x.match(/^(.+?)\s+Vendor$/i); if(v) return VENDORS.includes(v[1]) ? v[1] : "";
+    return {"Trials of Osiris":"Trials", "Dares of Eternity":"Dares", "Vanguard":"Zavala"}[x] ?? x;
+  };
+  PVPD.weapons.forEach(w => {
+    const t = byKey[w.arch + "|" + nm(w.name)] || byName[nm(w.name)];
+    if(t){
+      w.source = t.source; w.srcX = t.srcX;
+      if(t.element) w.element = t.element;
+      if(t.season) w.season = t.season;
+      w.frame = t.frame || tidyFrame(w.frame);
+    } else {
+      w.frame = tidyFrame(w.frame);
+      w.source = [...new Set(String(w.source || "").split(/\s*[\/,]\s*/).map(tidySrc).filter(Boolean))].join(", ");
+    }
+  });
+})();
 ALL_WEAPONS.forEach(w => { w.acts = [...new Set(String(w.source || "").split(",").map(x => x.trim()).map(x => ACT_FIX[x] ?? x))]; });
 const ACT_GROUPS = [
   ["Raids", ["Crota's End","Deep Stone Crypt","Desert Perpetual","Epic Desert Perpetual","Garden of Salvation","King's Fall","Last Wish","Root of Nightmares","Salvation's Edge","Vault of Glass","Vow of the Disciple"]],
@@ -1506,8 +1535,14 @@ const validStats = arr => (arr||[]).filter(k => STATNAME[k]);
 const piecesHave = s => PIECES.filter(([p]) => validStats(piecesOf(s)[p]).length).length;
 const fn = n => n ? `<sup class="fn" title="${esc(NOTES[n] || "")}">[${n}]</sup>` : "";
 function lines(arr){ return `<div class="lines">${arr.map(x => Array.isArray(x) ? `<s title="Struck on the sheet">${esc(x[0])}</s>` : `<span>${esc(x)}</span>`).join("")}</div>`; }
-function thumb(w, big){
-  const m = marks[w.id] || "";
+// the icon's border follows the best roll owned in the mode being viewed (PvE or PvP), the same grade its report card
+// icon shows; a drop card passes its own copy's grade. Looking for keeps its dashed border when nothing is owned yet.
+function rollBorder(w){
+  const st = ((reportCard(w).cards[MODE]) || {}).state;
+  return st === "god" || st === "semi" ? st : marks[w.id] === "looking" ? "looking" : "";
+}
+function thumb(w, big, g){
+  const m = g !== undefined ? g : rollBorder(w);
   const img = iconURL("w", w.wi || w.id);
   if(big) return `<div class="thumb ${m} big" data-thumb="${w.id}"><img src="${img}" alt="" decoding="async"></div>`;
   return `<button type="button" class="thumb ${m}" data-thumb="${w.id}" data-act="shot" data-id="${w.id}" aria-label="View the full image of ${esc(w.name)}" title="View full image"><img src="${img}" alt="" decoding="async"></button>`;
@@ -1588,7 +1623,7 @@ function dropCard(d){
   const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
   return `<article class="drop">
-    <div class="drop-top">${thumb(w)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
+    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${tierCell(w.tier, w.rank)}</div>
     <div class="drop-verdict">${verdict}<span class="dim">Highlights follow the ${RC_NAME[MODE]} roll</span></div>
