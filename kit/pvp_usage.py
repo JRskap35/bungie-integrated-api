@@ -1,5 +1,6 @@
 """What PvP players actually use, read from Bungie's own match reports, for pvp_rank.py (Joe, 2026-11-03).
-Usage: python3 -I pvp_usage.py hashes.json bungie/config.json PREV_URL SEED.json OUT_usage.json OUT_perks.json OUT_store.json
+Usage: python3 -I pvp_usage.py hashes.json bungie/config.json PREV SEED.json OUT_usage.json OUT_perks.json OUT_store.json
+PREV is the store the last build published: a file the build downloaded already, or its address.
 
 Every weekly reset (Tuesday 17:00 UTC) closes a week. For each of the last four closed weeks that the store doesn't have
 yet, this samples Bungie's post game carnage reports from that week (random report ids, the PvP ones kept), and for
@@ -137,10 +138,13 @@ def read_perks(players):
 # ---------- the store: weeks already counted
 def load_prev():
     try:
-        page = subprocess.run(["curl", "-sSfL", "--max-time", "60", PREV_URL], capture_output=True, check=True).stdout
-        st = json.loads(page); print(f"Previous store from {PREV_URL}: {sorted(st.get('weeks', {}))}"); return st
+        if os.path.exists(PREV_URL): page = open(PREV_URL, "rb").read()        # downloaded with the other sources
+        else: page = subprocess.run(["curl", "-sSfL", "--max-time", "60", PREV_URL], capture_output=True, check=True).stdout
+        st = json.loads(page)
+        if not isinstance(st, dict) or "weeks" not in st: raise ValueError("not a store")
+        print(f"Previous store from the published site: {sorted(st.get('weeks', {}))}"); return st
     except Exception as e:
-        print(f"No store at {PREV_URL} ({e.__class__.__name__}); using the repo copy {SEED}")
+        print(f"No published store ({e.__class__.__name__}); using the repo copy {SEED}")
         try: return json.load(open(SEED))
         except Exception: return {"weeks": {}}
 

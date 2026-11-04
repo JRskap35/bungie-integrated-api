@@ -19,6 +19,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      ghpages: ${{ steps.ghcheck.outputs.changed }}
     env:
       # progress sync (cloud/): saved under Settings > Secrets and variables > Actions. Without them the site still
       # builds, and hand-entered progress stays in each browser.
@@ -51,13 +53,26 @@ jobs:
         run: bash cloud/deploy_pages.sh
       - name: Forward the old GitHub address to endgameapi.pages.dev
         run: bash cloud/github_redirect.sh
+      # GitHub Pages only needs a new upload when its page changes: the forwarding page is the same every week, and the
+      # full site goes there only if the Cloudflare publish failed (then the pages differ and it is uploaded)
+      - name: Does GitHub Pages need updating?
+        id: ghcheck
+        run: |
+          if curl -sSfL --max-time 60 https://jrskap35.github.io/bungie-integrated-api/ -o build/gh_live.html && cmp -s build/gh_live.html build/ghsite/index.html; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"; echo "GitHub Pages already serves this page; no upload"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"; echo "GitHub Pages will be updated"
+          fi
       - uses: actions/configure-pages@v5
+        if: steps.ghcheck.outputs.changed == 'true'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.ghcheck.outputs.changed == 'true'
         with:
           path: build/ghsite
 
   deploy:
     needs: build
+    if: needs.build.outputs.ghpages == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

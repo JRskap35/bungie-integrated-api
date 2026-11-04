@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploy the progress sync worker to Cloudflare and write its address to build/vault_api.txt for the site build.
 # Needs CLOUDFLARE_API_TOKEN (permissions: Workers Scripts Edit, Workers KV Storage Edit, Account Settings Read)
-# and CLOUDFLARE_ACCOUNT_ID, both saved as GitHub repository secrets. Safe to run every build: it reuses the namespace.
+# and CLOUDFLARE_ACCOUNT_ID, both saved as GitHub repository secrets. Safe to run every build: it reuses the namespace and skips the deploy when nothing changed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${CLOUDFLARE_API_TOKEN:?}" "${CLOUDFLARE_ACCOUNT_ID:?}"
@@ -20,7 +20,15 @@ borigin=$(jq -r '.bungieOrigin // "https://jrskap35.github.io"' bungie/config.js
 mkdir -p build/cloud
 sed -e "s/__KV_ID__/$id/" -e "s/__BUNGIE_API_KEY__/$key/" -e "s#__SITE_ORIGINS__#$origins#" -e "s#__BUNGIE_ORIGIN__#$borigin#" cloud/wrangler.toml > build/cloud/wrangler.toml
 cp cloud/worker.js build/cloud/worker.js
-(cd build/cloud && npx --yes wrangler@4 deploy)
+# redeploy only when the worker or its settings changed: each deploy is tagged with a fingerprint of both, and the
+# live deployment's tag is checked first (any doubt, such as the check failing, means deploy)
+fp="src:$(cat build/cloud/worker.js build/cloud/wrangler.toml | sha256sum | cut -c1-16)"
+live=$(curl -sS "${H[@]}" "$API/workers/scripts/bia-progress/deployments" 2>/dev/null | jq -r '.result.deployments[0].annotations["workers/message"] // empty' 2>/dev/null || true)
+if [ "$live" = "$fp" ]; then
+  echo "Progress sync worker unchanged ($fp); not redeployed"
+else
+  (cd build/cloud && { npx --yes wrangler@4 deploy --message "$fp" || npx --yes wrangler@4 deploy; })
+fi
 sub=$(curl -sS "${H[@]}" "$API/workers/subdomain" | jq -r '.result.subdomain // empty')
 [ -n "$sub" ] || { echo "No workers.dev subdomain yet: open Workers & Pages in the Cloudflare dashboard once to pick one"; exit 1; }
 echo "https://bia-progress.$sub.workers.dev" > build/vault_api.txt

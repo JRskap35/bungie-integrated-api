@@ -32,7 +32,7 @@ def curl(url, path):
 
 # ---------- manifest ----------
 mpath = os.path.join(CACHE, "manifest.json")
-curl(BASE + "/Platform/Destiny2/Manifest/", mpath)
+if not (os.environ.get("BUNGIE_MANIFEST_READY") and os.path.exists(mpath)): curl(BASE + "/Platform/Destiny2/Manifest/", mpath)   # build.sh downloads it first
 man = json.load(open(mpath))["Response"]
 ver = man["version"]; paths = man["jsonWorldComponentContentPaths"]["en"]
 def comp(k):

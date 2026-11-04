@@ -18,12 +18,13 @@ The rules (each one is applied, then the whole result is audited again, and the 
   3. Notes      TTK numbers in Pride's notes ("1.00 -> 0.59") are rewritten to Hugo's numbers where they disagree by
                 0.02 s or more: the starting TTK always, and the result when every perk named in that claim can be
                 modelled from Hugo's data and gives one answer.
-  5. Perk order  In each perk column the listed perk with the fastest TTK goes first; ties keep Pride's order.
-  4. Tier list  Sections Hugo covers are re-tiered and numbered #1, #2... by each weapon's finished TTK (fastest TTK
-                its final perks reach on first activation, or its starting TTK). Equal TTKs keep Pride's order. Pride's number
-                of S, A, B... per section stays as the template, filled fastest first. Other sections keep Pride's tiers.
-Every change is listed in REPORT.txt; w["ttk"] carries the finished TTK for the weapon popup and w["pr"] Pride's own
-tier and rank (used only by the audit). If Hugo's sheet or the Compendium changes layout so the TTK model no longer matches Hugo's own chart, the
+  4. Perk order  In each perk column the listed perk with the fastest TTK goes first; ties keep Pride's order. The player
+                ranking (pvp_rank.py) reorders the columns by what players run and uses this order only to break ties.
+  Names         A PvP weapon whose name Pride misspelled takes Bungie's spelling here (the same match bungie.py makes), so
+                the player data and Bungie's item hashes find it.
+Tiers and ranks are left as Pride has them: pvp_rank.py sets every PvP tier from what players use (a TTK tier list used to
+be rule 4, 2026-11-04). Every change is listed in REPORT.txt; w["ttk"] carries the finished TTK for the weapon popup and
+w["pr"] Pride's own tier and rank. If Hugo's sheet or the Compendium changes layout so the TTK model no longer matches Hugo's own chart, the
 build stops instead of guessing."""
 import json, sys, os, re, math, subprocess, collections, difflib
 
@@ -43,7 +44,7 @@ BASE = "https://www.bungie.net"
 def curl(url, path):
     subprocess.run(["curl", "-sS", "--fail", "--compressed", "--retry", "3", "--retry-delay", "5", "--max-time", "600", "-o", path, url], check=True)
 mpath = os.path.join(CACHE, "manifest.json")
-curl(BASE + "/Platform/Destiny2/Manifest/", mpath)
+if not (os.environ.get("BUNGIE_MANIFEST_READY") and os.path.exists(mpath)): curl(BASE + "/Platform/Destiny2/Manifest/", mpath)   # build.sh downloads it first
 man = json.load(open(mpath))["Response"]; ver = man["version"]; paths = man["jsonWorldComponentContentPaths"]["en"]
 def comp(k):
     p = os.path.join(CACHE, f"{k}-{ver}.json")
@@ -70,6 +71,21 @@ def close(key, pool, cutoff=0.86):
     if len(pre) == 1 and len(key) >= 6: return pre[0]
     inside = sorted((k for k in pool if len(k) >= 8 and key.startswith(k)), key=len, reverse=True)
     return inside[0] if inside else None
+
+def close_bungie(key, pool, cutoff=0.86):
+    """bungie.py's close(), unchanged: the weapon name match it uses to show Bungie's spelling for a PvP weapon"""
+    if not key or len(key) < 5: return None
+    m = difflib.get_close_matches(key, pool, n=1, cutoff=cutoff)
+    if m: return m[0]
+    pre = [k for k in pool if k.startswith(key)]
+    if len(pre) == 1 and len(key) >= 8: return pre[0]
+    inside = sorted((k for k in pool if len(k) >= 8 and key.startswith(k)), key=len, reverse=True)
+    return inside[0] if inside else None
+def bungie_spelling(w):
+    """Pride's spelling slips ("Sherpard's Watch"): Bungie's name, exactly as bungie.py would rename it"""
+    if WEAP.get(nn(w["name"])) or not w["id"].startswith("pvp-"): return None
+    k = close_bungie(nn(w["name"]), WEAPKEYS, 0.8)
+    return WEAP[k][0]["displayProperties"]["name"] if k else None
 
 def columns(it):
     """the weapon's sockets in game order: (plug category, [plug names]), enhanced copies left out. A socket's fixed plug
@@ -420,42 +436,14 @@ def column_tops(w):
         out[key] = col
     return out
 
-TI = {t: i for i, t in enumerate("SABCDEF")}
-def tier_order(PW):
-    """Sections Hugo's chart covers are tiered and numbered by finished TTK, fastest first; equal TTKs keep Pride's order
-    (his tier, then his rank). Pride's tier sizes for the section stay as the template (his number of S, A, B... filled
-    fastest first). A weapon Hugo has no frame data for keeps Pride's tier and sits at the end of it. Every other section
-    keeps Pride's tiers and order. Returns {weapon id: (tier, rank)}."""
-    out, by = {}, collections.defaultdict(list)
-    for w in PW: by[w["arch"]].append(w)
-    for arch, ws in by.items():
-        pr = {w["id"]: w["pr"] for w in ws}
-        best = {w["id"]: b["best"] for w in ws for b in [ttk_box(w)] if b} if arch in TYPE else {}
-        if not best:
-            for w in ws: out[w["id"]] = tuple(pr[w["id"]])
-            continue
-        timed = sorted((w for w in ws if w["id"] in best),
-                       key=lambda w: (round(best[w["id"]], 3), TI.get(pr[w["id"]][0], 9), pr[w["id"]][1]))
-        sizes = collections.Counter(pr[w["id"]][0] for w in timed)
-        slots = [t for t in sorted(sizes, key=lambda t: TI.get(t, 9)) for _ in range(sizes[t])]
-        tier = {w["id"]: slots[i] for i, w in enumerate(timed)}
-        pos = {w["id"]: i for i, w in enumerate(timed)}
-        for w in ws: tier.setdefault(w["id"], pr[w["id"]][0])
-        final = sorted(ws, key=lambda w: (TI.get(tier[w["id"]], 9), pos.get(w["id"], 10 ** 6), pr[w["id"]][1]))
-        for i, w in enumerate(final): out[w["id"]] = (tier[w["id"]], i + 1)
-    return out
-
 def audit_order(PW):
-    """the finished tiers, ranks and TTK boxes must be exactly what the rules give"""
+    """the finished perk order and TTK boxes must be exactly what the rules give"""
     bad = []
-    if any("pr" not in w for w in PW): return ["Pride's original tier and rank (pr) are missing"]
-    exp = tier_order(PW)
     for w in PW:
         tops = column_tops(w)
         for key in ("p1", "p2"):
             if [pname(x) for x in w.get(key, [])] != [pname(x) for x in tops[key]]:
                 bad.append(f"{w['name']}: Perk {key[1]} does not lead with its fastest TTK perk ({pname(tops[key][0])})")
-        if (w["tier"], w["rank"]) != exp[w["id"]]: bad.append(f"{w['name']}: tier {w['tier']} #{w['rank']} should be {exp[w['id']][0]} #{exp[w['id']][1]}")
         b = ttk_box(w)
         if (b or None) != (w.get("ttk") or None): bad.append(f"{w['name']}: its TTK box is out of date")
     return bad
@@ -484,9 +472,6 @@ def rule_tests(PW, pools):
         x["notes"] = re.sub(rf"(\d\.\d\d?)(\s*{ARROW})", "9.99\\2", x["notes"], count=1); caught(x, pool, "a wrong TTK number in the notes")
     sec = next((a for a in TYPE if sum(1 for w in PW if w["arch"] == a and w.get("ttk")) >= 2), None)
     if sec:
-        y = copy.deepcopy(PW); a, b = [w for w in y if w["arch"] == sec and w.get("ttk")][:2]
-        a["rank"], b["rank"] = b["rank"], a["rank"]
-        if not audit_order(y): fails.append("audit no longer catches a weapon out of TTK order")
         y = copy.deepcopy(PW); c = next(w for w in y if w.get("ttk")); c["ttk"] = dict(c["ttk"], best=0.01)
         if not audit_order(y): fails.append("audit no longer catches a stale TTK box")
         y = copy.deepcopy(PW); c = next(w for w in y if w.get("ttk", {}).get("perks"))
@@ -503,6 +488,11 @@ if not tot or ok / tot < 0.9:
 if not PI: print("WARNING: the Compendium's Precision Instrument numbers were not found; Precision Instrument is left unmodelled")
 
 d = json.load(open(DATA_IN))
+renamed = []
+if not CHECK_ONLY:
+    for w in d["pvp"]["weapons"]:
+        b = bungie_spelling(w)
+        if b and b != w["name"]: renamed.append(f"{w['name']} to {b}"); w["name"] = b
 PW = [w for w in d["pvp"]["weapons"] if not w.get("exotic")]
 pools = {}
 for w in PW:
@@ -534,11 +524,6 @@ for w in PW:
     b = ttk_box(w)
     if b: w["ttk"] = b
     else: w.pop("ttk", None)
-moves = []
-order = tier_order(PW)
-for w in PW:
-    w["tier"], w["rank"] = order[w["id"]]
-    if w["tier"] != w["pr"][0]: moves.append(f"{w['name']} ({w['arch']}) {w['pr'][0]} to {w['tier']}, {w['ttk']['best']:.2f}s")
 problems += audit_order(PW)
 problems += rule_tests(PW, pools)
 checked = len(pools)
@@ -554,8 +539,8 @@ with open(REPORT, "w") as f:
     f.write(summary + "\n")
     if OVERRIDES: f.write("Damage taken from the Compendium's PvP numbers over Hugo's: " + ", ".join(f"{k} {a:.3f} to {b:.3f}" for k, (a, b) in OVERRIDES.items()) + "\n")
     if fixed_roll: f.write(f"Left as listed (only fixed roll copies on Bungie): {', '.join(fixed_roll)}\n")
-    f.write(f"Fastest TTK perk moved to the top of its column: {moved} columns\n")
-    f.write(f"Tier list by TTK: {len(moves)} weapons changed tier: " + "; ".join(moves) + "\n")
+    if renamed: f.write(f"Weapon names set to Bungie's spelling: {'; '.join(renamed)}\n")
+    f.write(f"Fastest TTK perk put first in its column (the player ranking's tie breaker): {moved} columns\n")
     f.write("\n".join(report) + "\n")
 print(summary)
 if problems:
