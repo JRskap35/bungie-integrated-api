@@ -1958,14 +1958,17 @@ function copyIcons(c, L){
 /* What else of this weapon is already in the vault, this drop left out (Joe, 2026-11-04): the drop card's Obtained box
    shows it as icons (PvE / PvP god and semi-god rolls, copies to dismantle) with their counts, so a repeat god roll is
    clear without opening the list, and the verdict notes "you already have 1". */
-function vaultOthers(w, cid){
-  const rc = reportCard(w), other = x => !x.c || x.c.cid !== cid;
+// skip: copy ids left out of the count. A drop card leaves out every copy on the New Drops list, so its count is what
+// the account held before these drops came in (Joe, 2026-11-04)
+const newDropIds = () => new Set(DROPS.list.map(d => d.c && d.c.cid).filter(Boolean));
+function vaultOthers(w, skip){
+  const rc = reportCard(w), other = x => !x.c || !(skip && skip.has(x.c.cid));
   const per = m => { const l = rc.cards[m].list.filter(other); return {god: l.filter(x => x.g === "god").length, semi: l.filter(x => x.g === "semi").length}; };
   return {pve: per("pve"), pvp: per("pvp"), trash: rc.cards.trash.list.filter(other).length, n: rc.cards.all.list.filter(other).length};
 }
-function dropOwnBox(w, c){ return ownSummary(w, c.cid); }
-function ownSummary(w, cid){
-  const drop = cid != null, o = vaultOthers(w, cid), chips = [], words = [];
+function dropOwnBox(w, c){ return ownSummary(w, newDropIds()); }
+function ownSummary(w, skip){
+  const drop = !!skip, o = vaultOthers(w, skip), chips = [], words = [];
   // one icon per mode, the best roll owned there (a god roll outweighs a semi-god roll), then copies to dismantle;
   // each icon carries its own count (Joe, 2026-11-04). The hover text still lists every grade.
   ["pve", "pvp"].forEach(m => {
@@ -1975,7 +1978,7 @@ function ownSummary(w, cid){
   });
   if(o.trash){ chips.push(`<span class="own-c g-trash" title="Safe to dismantle"><span class="own-t" aria-hidden="true">${I.trash}</span><b>${o.trash}</b></span>`); words.push(`${plural(o.trash, "copy", "copies")} safe to dismantle`); }
   const open = S.rc[w.id] === "all", has = ownedCount(w) > 0;
-  const tip = (o.n ? `${drop ? "Already in your vault" : "In your vault"}: ${words.join(", ") || plural(o.n, drop ? "other copy" : "copy", drop ? "other copies" : "copies")}` : drop ? "This is your first copy" : "None on your account") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
+  const tip = (o.n ? `${drop ? "In your vault before these drops" : "In your vault"}: ${words.join(", ") || plural(o.n, "copy", "copies")}` : drop ? "None on your account before these drops" : "None on your account") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
   // Obtained | how many (New on a drop with none before) | the rolls among them
   const body = `<span class="own-l">Obtained</span><b class="own-n ${o.n ? "" : "own-none"}">${o.n ? o.n : drop ? "New" : ""}</b>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : ""}`;
   return has ? `<button type="button" class="own has own-drop ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${esc(tip)}" aria-label="${esc(tip)}">${body}</button>`
@@ -1990,7 +1993,7 @@ function dropCard(d){
   const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}, w = L[MODE] || L.pve || L.pvp;
   if(!w) return "";
   const keep = x => x === "god" || x === "semi";
-  const ci = copyIcons(d.c, L), g = ci.g, trash = ci.trash, others = vaultOthers(w, d.c.cid);
+  const ci = copyIcons(d.c, L), g = ci.g, trash = ci.trash, others = vaultOthers(w, newDropIds());
   const verdict = trash ? `<span class="rc-tag g-none">Safe to dismantle</span>`
     : ["pve", "pvp"].filter(m => keep(g[m])).map(m => `<span class="rc-tag g-${g[m]}">${RC_NAME[m]} ${TAG[g[m]]}</span>${repeatNote(m, g[m], others)}`).join(`<span class="dim">·</span>`);
   const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
