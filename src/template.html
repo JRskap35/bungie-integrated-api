@@ -262,6 +262,8 @@ a.btn svg{width:14px;height:14px}
 /* report cards: PvE, PvP and trash icons after each weapon name */
 .nm-line{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
 .rc{display:inline-flex;align-items:center;gap:13px;flex:none;padding-right:6px}
+.rc-pow{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1;letter-spacing:.02em;color:#f2d873;white-space:nowrap;margin-right:2px}
+.rc-pow svg{width:11px;height:11px;fill:currentColor;flex:none}
 .rc-b{appearance:none;position:relative;width:27px;height:27px;display:grid;place-items:center;border:0;background:none;padding:0;color:var(--faint);border-radius:3px}
 button.rc-b{cursor:pointer}
 button.rc-b:hover{background:rgba(255,255,255,.07)}
@@ -1308,6 +1310,7 @@ const LOCS = {vault: "Vault", hunter: "Hunter", titan: "Titan", warlock: "Warloc
 const CHARS = ["hunter", "titan", "warlock"];
 function locOf(c, seedKey){
   if(!c.cid){ c.cid = "c" + Math.abs(seeded(seedKey + JSON.stringify(c.p1 || ""))() * 1e9 | 0).toString(36); }
+  if(c.pl == null) c.pl = 500 + Math.floor(seeded("pl" + c.cid)() * 51);   // sample copies get a made up light level
   if(!c.loc){ const r = seeded("loc" + c.cid)(); c.loc = r < 0.5 ? "vault" : CHARS[Math.floor((r - 0.5) / 0.5 * 3)] || "hunter"; }
   return c.loc;
 }
@@ -1507,7 +1510,7 @@ async function bLoadAccount(){
 }
 // every weapon the account owns that one of the sheets rates: {weapon key: [copy, ...]}
 async function bProfile(){
-  const r = await bfetch(`/Platform/Destiny2/${BACCT.type}/Profile/${BACCT.id}/?components=102,200,201,205,305,310`);
+  const r = await bfetch(`/Platform/Destiny2/${BACCT.type}/Profile/${BACCT.id}/?components=102,200,201,205,300,305,310`);
   const chars = {}, byClass = {}, last = {};
   Object.entries((r.characters || {}).data || {}).forEach(([cid, c]) => {
     const cls = ["titan", "hunter", "warlock"][c.classType]; if(!cls) return;
@@ -1519,6 +1522,7 @@ async function bProfile(){
   (((r.profileInventory || {}).data || {}).items || []).forEach(it => { if(it.bucketHash === VAULT_BUCKET) all.push([it, "vault", null, false]); });
   Object.entries((r.characterInventories || {}).data || {}).forEach(([cid, inv]) => (inv.items || []).forEach(it => all.push([it, it.bucketHash === POST_BUCKET ? "post" : chars[cid], cid, false])));
   Object.entries((r.characterEquipment || {}).data || {}).forEach(([cid, inv]) => (inv.items || []).forEach(it => all.push([it, chars[cid], cid, true])));
+  const insts = (((r.itemComponents || {}).instances || {}).data) || {};
   const sockets = (((r.itemComponents || {}).sockets || {}).data) || {}, reus = (((r.itemComponents || {}).reusablePlugs || {}).data) || {};
   const out = {};
   for(const [it, loc, cid, equipped] of all){
@@ -1527,6 +1531,7 @@ async function bProfile(){
     if(Array.isArray(k)) k = k[0];
     const sk = (sockets[it.itemInstanceId] || {}).sockets || [], rp = (reus[it.itemInstanceId] || {}).plugs || {};
     const c = {cid: it.itemInstanceId, itemHash: it.itemHash, loc, charId: cid, equipped, barrel: [], mag: [], p1: [], p2: [], origin: [], mw: ""};
+    const pw = ((insts[it.itemInstanceId] || {}).primaryStat || {}).value; if(pw) c.pl = pw;   // the copy's light (power) level
     let col = 0;
     sk.forEach((sock, i) => {
       const cur = sock.plugHash && HASH.p[sock.plugHash];
@@ -1864,7 +1869,9 @@ function copyIcons(c, L){
     const glyph = m === "trash" ? I.trash : `<span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>`;
     return `<span class="rc-b rc-${m} st-${st}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}${st === "none" || st === "na" ? "" : `<b class="rc-n">1</b>`}</span>`;
   };
-  return {g, trash, html: `<span class="rc">${icon("pve")}${icon("pvp")}${icon("trash")}</span>`};
+  // the copy's light level sits first, left of the PvE, PvP and dismantle icons (Joe, 2026-11-03)
+  const pow = c.pl ? `<span class="rc-pow" role="img" aria-label="Light level ${c.pl}" data-tip="Light level ${c.pl}"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .6 7.4 4.6 11.4 6 7.4 7.4 6 11.4 4.6 7.4.6 6 4.6 4.6Z"/></svg>${c.pl}</span>` : "";
+  return {g, trash, html: `<span class="rc">${pow}${icon("pve")}${icon("pvp")}${icon("trash")}</span>`};
 }
 /* ---------- New Drops page ---------- */
 function dropCard(d){
