@@ -27,9 +27,17 @@ Fan made and not affiliated with Bungie. Destiny 2 and its icons and artwork bel
 
 ## How it stays up to date
 
-A GitHub Actions job (`.github/workflows/deploy.yml`) runs every Wednesday evening, downloads the live spreadsheet, pulls the matching icons from Bungie's Destiny 2 API (`kit/bungie.py`), rebuilds the site and publishes it to GitHub Pages. New weapons Aegis adds get their Bungie icons on the same run; anything Bungie doesn't have yet keeps the sheet's icon until it does. It can also be run on demand from the Actions tab with **Run workflow**.
+A GitHub Actions job (`.github/workflows/deploy.yml`) runs every Wednesday evening (and on every push to main or on demand with **Run workflow** in the Actions tab). `kit/build.sh` runs in a straight line:
 
-Before publishing, `kit/check.py` checks that every weapon section, rank and armor set looks right. If the sheet changes shape, the job stops without publishing and GitHub emails the repo owner. Each run's summary lists what changed on the sheet: new weapons, removals, tier moves and perk changes.
+1. **Every source is downloaded first:** Aegis's sheet, Pride's sheet, Hugo's chart and the Compendium (saved copy if down), Bungie's manifest (`kit/bungie_manifest.py`), DIM's community wish list, the PvP weeks already counted and the live site. A source that is down stops the run here, before any work.
+2. **Aegis's sheet** is read and checked by `kit/check.py`. If the sheet changes shape, the job stops without publishing and GitHub emails the repo owner.
+3. **Pride's sheet** is read and cross checked (below). The job stops if a rule still breaks.
+4. **Bungie item hashes** for every weapon on both sheets are built once (`kit/bungie_hashes.py`).
+5. **PvP from players:** Bungie's match reports and loadouts for any newly closed week, then the PvP tiers and perks (below). This is the only slow step, so it runs after everything that could stop the job.
+6. **Bungie's official icons** (`kit/bungie.py`); new weapons Aegis adds get them on the same run, and anything Bungie doesn't have yet keeps the sheet's icon.
+7. **The page** is put together, and the run summary lists what changed since the live version: new weapons, removals, tier moves and perk changes on Aegis's sheet, and on the PvP side Pride's tier changes plus what moved on the site after the player ranking.
+
+The workflow then publishes to Cloudflare Pages. The progress sync worker is redeployed only when its code or settings changed, and the old GitHub address only gets a new upload when its forwarding page changes (or, if the Cloudflare publish failed, the full site goes there instead).
 
 ### PvP cross check
 
@@ -38,6 +46,7 @@ Pride's PvP sheet is the baseline, and `kit/crosscheck.py` checks it against thr
 1. **Bungie's roll pools.** Every listed barrel, magazine and perk has to roll on the weapon in Bungie's manifest. Spellings follow Bungie, a perk listed under the wrong column moves to the right one, and anything that cannot roll is removed.
 2. **Hugo's time to kill (TTK) data.** For autos, hand cannons, pulses, scouts, sidearms and SMGs, each perk column that has a perk which lowers the TTK on its first activation has to list one that reaches the fastest TTK. A perk only counts when the Compendium says a duel can switch it on, such as a weapon kill or a kill reload. If none is listed, the fastest one is added.
 3. **TTK numbers in the notes** are rewritten to Hugo's numbers where they differ.
+4. **Weapon names** Pride misspelled take Bungie's spelling, so the player data and Bungie's item hashes find them.
 
 Every change is listed in the run summary; the weapon's details panel shows only its finished TTK. The step stops the deploy if a rule still breaks after fixing, if its TTK math stops matching Hugo's own chart, or if its audit stops catching a rule it breaks on purpose. The job rebuilds every Wednesday whether or not the sheets changed, so a change to Hugo's chart or the Compendium alone still updates the PvP perks, tiers and TTK numbers that week. `kit/hugo_fetch.py` downloads Hugo's chart and the Compendium, falling back to the saved copy in `assets/hugo_cache.json` if either is unreachable.
 
