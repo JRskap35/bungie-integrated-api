@@ -846,6 +846,66 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .uc p{margin:0;max-width:46ch;color:var(--muted);line-height:1.55}
 .uc .btn{margin-top:10px;background:var(--pve);border-color:var(--pve);color:#fff}
 @media (max-width:440px){.uc{padding:32px 0 48px}.uc h2{font-size:24px}.uc-card{padding:28px 18px 24px}}
+
+/* ---------- perk editor (Joe, 2026-11-04): only when the page carries the vault-editor block ---------- */
+.editor .nav button:not([data-view="weapons"]),.editor #bsync,.editor #sync,.editor #acct,.editor #soundBtn{display:none!important}
+.editor .nav button[data-view="weapons"]{cursor:default}
+.ed-chip{font-family:var(--font-mono);font-size:10.5px;font-weight:500;letter-spacing:.16em;color:var(--accent);border:1px solid var(--line-2);padding:3px 7px;border-radius:2px;margin-left:4px}
+.ed-update{appearance:none;display:inline-flex;align-items:center;gap:9px;height:36px;padding:0 16px;border:1px solid var(--god);background:var(--god);color:#06200f;
+  font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border-radius:2px}
+.ed-update:hover:not(:disabled){filter:brightness(1.08)}
+.ed-update:disabled{background:none;border-color:var(--line-2);color:var(--faint);cursor:not-allowed}
+.ed-update .ed-n{font-family:var(--font-mono);font-size:11.5px;font-weight:600;letter-spacing:0;background:#06200f;color:var(--god);border-radius:9px;padding:1px 7px}
+.ed-update:disabled .ed-n{display:none}
+.ed-update.sent:disabled{color:var(--semi);border-color:color-mix(in srgb,var(--semi) 60%,transparent)}
+.editor .ammo-tabs{align-items:center}
+.ed-search{flex:0 1 300px;max-width:300px;margin:6px 14px 6px 0;height:36px}
+.editor .wtable .c-name{vertical-align:middle}
+.ed-nm{display:flex!important;align-items:center;justify-content:space-between!important;gap:10px!important;text-align:left}
+.ed-nm .nm-txt{flex:1 1 auto}
+.ed-btn{appearance:none;flex:none;align-self:center;height:30px;padding:0 14px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg);
+  font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;border-radius:2px}
+.ed-btn:hover{border-color:var(--accent)}
+.ed-btn[aria-expanded="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.ed-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.ed-tag.pending{color:var(--semi)}
+.wtable tr.row.ed-edited td.c-thumb{box-shadow:inset 3px 0 0 var(--accent)}
+.ped{display:grid;gap:14px;padding:14px 4px 6px;text-align:left}
+.ped-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ped-col{border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:3px;padding:10px;display:grid;gap:8px;align-content:start;min-width:0}
+.ped-col h4{margin:0;display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ped-col h4 .ed-tag{margin-left:auto}
+.ped-list{list-style:none;margin:0;padding:4px;display:grid;gap:4px;min-height:44px;border:1px dashed var(--line-2);border-radius:3px}
+.ped-list.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.ped-item{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 4px;border:1px solid var(--line-2);background:var(--panel-2);border-radius:3px;cursor:grab;font-size:13.5px;line-height:1.2;position:relative;user-select:none}
+.ped-item:active{cursor:grabbing}
+.ped-item.dragging{opacity:.4}
+.ped-item.off span.n{color:var(--muted);font-style:italic}
+.ped-item.before::before,.ped-item.after::after{content:"";position:absolute;left:4px;right:4px;height:2px;background:var(--accent);border-radius:1px}
+.ped-item.before::before{top:-4px} .ped-item.after::after{bottom:-4px}
+.ped-i{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);width:14px;text-align:right;flex:none}
+.ped-grip{color:var(--faint);flex:none;width:10px;height:16px;background:radial-gradient(circle,currentColor 1.1px,transparent 1.4px) 0 0/5px 5px}
+.ped-item img,.ped-chip img{width:22px;height:22px;flex:none}
+.ped-item span.n{flex:1 1 auto;min-width:0}
+.ped-mv{display:flex;gap:2px;flex:none}
+.ped-mv button,.ped-x{appearance:none;border:0;background:none;color:var(--faint);cursor:pointer;width:22px;height:22px;display:grid;place-items:center;border-radius:2px;padding:0}
+.ped-mv button:hover:not(:disabled),.ped-x:hover{color:var(--fg);background:rgba(255,255,255,.06)}
+.ped-mv button:disabled{opacity:.25;cursor:default}
+.ped-mv svg,.ped-x svg{width:13px;height:13px}
+.ped-empty{color:var(--faint);font-size:12.5px;padding:8px 6px;text-align:center}
+.ped-ah{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+.ped-pool{display:flex;flex-wrap:wrap;gap:5px;max-height:232px;overflow:auto;padding:2px;border-radius:3px}
+.ped-pool.over{outline:1px dashed #ef8a7e;outline-offset:2px}
+.ped-chip{appearance:none;display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 5px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--muted);font:inherit;font-size:12.5px;line-height:1.15;cursor:grab;border-radius:3px;text-align:left}
+.ped-chip:hover{color:var(--fg);border-color:var(--accent)}
+.ped-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ped-foot .ped-note{color:var(--faint);font-size:12.5px;margin-right:auto}
+.ped-save{min-width:110px}
+.ped-save:disabled{background:none;border-color:var(--line-2);color:var(--faint);cursor:not-allowed;filter:none}
+.ed-list{margin:6px 0 0;padding-left:18px;max-height:240px;overflow:auto;color:var(--muted);font-size:13.5px}
+.ed-list b{color:var(--fg);font-weight:600}
+@media (max-width:1100px){.ped-cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.ped-cols{grid-template-columns:1fr}.ed-search{flex-basis:180px}.ed-update{padding:0 12px}.ed-chip{display:none}}
 </style>
 
 <div id="bgart" aria-hidden="true"></div>
@@ -897,6 +957,7 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 <script id="vault-bungie" type="application/json">__BUNGIE__</script>
 <script id="vault-hashes" type="application/json">__HASHES__</script>
 <script id="vault-sound" type="application/json">__SOUND__</script>
+<script id="vault-editor" type="application/json">__EDITOR__</script>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
 (function(){
@@ -905,6 +966,8 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 /* ================= DATA (from Destiny 2: Endgame Analysis) ================= */
 const D = JSON.parse(document.getElementById("vault-data").textContent);
 const ICON_SRC = JSON.parse(document.getElementById("vault-icons").textContent);
+// perk editor build (kit/perk_pools.py): roll pools, Joe's edits as they stand on the site, and the UPDATE task
+const EDITOR = (() => { try{ const e = JSON.parse(document.getElementById("vault-editor").textContent); return e && e.pools ? e : null; }catch(err){ return null; } })();
 ICON_SRC.t = JSON.parse(document.getElementById("vault-trait-icons").textContent);
 ICON_SRC.e = JSON.parse(document.getElementById("vault-elements").textContent);
 document.documentElement.style.setProperty("--bgimg", 'url("__BG__")');
@@ -1844,6 +1907,7 @@ function keyPills(active, cid, L){
   }).join("")}</span>`;
 }
 function rcPanel(w){
+  if(EDITOR) return "";
   const m = S.rc[w.id]; if(!m) return "";
   const rc = reportCard(w), c = rc.cards[m]; if(!c.list.length) return "";
   const base = rc.L.pve || rc.L.pvp || w;
@@ -1996,6 +2060,7 @@ function render(){
   const got = WEAPONS.filter(w => ownedCount(w) > 0).length;
   $("#navCount").textContent = got ? got : "";
   let html = "";
+  if(EDITOR) S.view = "weapons";
   if(S.view === "drops")   html = dropsView();
   if(S.view === "weapons") html = weaponBrowser("all");
   if(S.view === "armor")   html = armorBlock("all");
@@ -2022,12 +2087,13 @@ function weaponBrowser(mode){
   const inAmmo = S.ammo === "all" ? base : base.filter(w => w.a === S.ammo);
   // Primary, Secondary and Heavy open a dropdown of their weapon types (hover with a mouse, tap on touch);
   // All Weapons and Other have none. The chosen type shows on the active tab with a clear button.
-  const tabs = AMMO_TABS.map(a => {
+  const tabs = AMMO_TABS.filter(a => !EDITOR || a.key !== "all").map(a => {
     const dd = a.key !== "all" && a.archs.length > 1, on = a.key === S.ammo;
     const pick = on && S.arch !== "all" ? `<span class="ammo-pick"><span class="sil-s" style="--sil:url('${iconURL("a", S.arch)}')" aria-hidden="true"></span>${esc(archName(S.arch))}<button type="button" class="pick-x" data-act="arch" data-k="all" aria-label="Show all ${esc(a.label)} weapons" title="Show all ${esc(a.label)}">${I.clear}</button></span>` : "";
     return `<span class="ammo-slot" style="--ammo:var(--ammo-${a.key})"><button type="button" class="ammo-tab ${dd?"has-dd":""}" data-act="ammo" data-k="${a.key}" ${dd?`data-dd="${a.key}" aria-haspopup="true" aria-expanded="false"`:""} aria-pressed="${on}">${ammoIcon(a.key)}${a.label}<span class="count">${a.key==="all"?base.length:base.filter(w=>w.a===a.key).length}</span>${dd?`<svg class="dd-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`:""}</button>${pick}</span>`;
   }).join("");
-  return `<div class="cat-sentinel"></div><div class="catbar artfill"><div class="ammo-tabs" aria-label="Ammo type">${tabs}</div>
+  const edSearch = EDITOR ? `<label class="search ed-search">${I.search}<input id="wq" type="search" placeholder="Search weapons or perks" value="${esc(S.q)}" autocomplete="off" aria-label="Search weapons"></label>` : "";
+  return `<div class="cat-sentinel"></div><div class="catbar artfill"><div class="ammo-tabs" aria-label="Ammo type">${edSearch}${tabs}</div>
     <div class="ammo-dd" id="ammoDD" role="menu" hidden data-mode="${mode}"></div></div>
     ${weaponControls(mode)}
     <div id="list">${weaponList(mode)}</div>`;
@@ -2038,6 +2104,7 @@ function filterValues(sc, f){
   return vals;
 }
 function weaponControls(mode){
+  if(EDITOR) return "";                                   // the editor goes straight into the list
   const st = mode === "vault" ? S.vStat : S.wStat;
   const opts = [["all","All"],["god","God Roll","var(--god)"],["semi","Semi-God","var(--semi)"],["looking","Looking for","var(--look)"]];
   if(mode !== "vault") opts.push(["none","Unmarked"]);
@@ -2126,7 +2193,7 @@ function weaponList(mode){
   items = sortList(items);
   const all = scope("all");
   const obtained = all.filter(w => ownedCount(w) > 0).length;
-  const head = `<div class="result"><span>Showing ${items.length} of ${total}</span><span class="rc-prev" ${BUNGIE_LINKED || !SAMPLES_OK ? "hidden" : ""}><span>Sample rolls</span><button type="button" class="rc-switch" data-act="rc-preview" aria-pressed="${PREVIEW}" title="Made up example copies that show how the report cards look until Bungie account sync is connected">${PREVIEW ? "On" : "Off"}</button></span><span>${obtained} / ${all.length} obtained here</span></div>`;
+  const head = EDITOR ? edHead(items.length, total) : `<div class="result"><span>Showing ${items.length} of ${total}</span><span class="rc-prev" ${BUNGIE_LINKED || !SAMPLES_OK ? "hidden" : ""}><span>Sample rolls</span><button type="button" class="rc-switch" data-act="rc-preview" aria-pressed="${PREVIEW}" title="Made up example copies that show how the report cards look until Bungie account sync is connected">${PREVIEW ? "On" : "Off"}</button></span><span>${obtained} / ${all.length} obtained here</span></div>`;
   if(!items.length) return head + `<div class="empty-state"><strong>No matches</strong><span>Nothing here fits the current search, status and filters.</span></div>`;
   const th = (k, l) => {
     const i = S.sorts.findIndex(s => s.key === k);
@@ -2135,11 +2202,11 @@ function weaponList(mode){
   };
   const showArch = S.arch === "all";
   const rows = items.map(w => {
-    const m = marks[w.id], open = !!S.open[w.id];
+    const m = marks[w.id], open = EDITOR ? S.ped === w.id : !!S.open[w.id];
     const rowsN = Math.max(w.p1.length, w.p2.length, 1);
-    const nameBlock = `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button>${ownBox(w)}<button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="nm-rc">${rcIcons(w)}</div><div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div></div>`;
+    const nameBlock = EDITOR ? edNameBlock(w, showArch, open) : `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button>${ownBox(w)}<button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="nm-rc">${rcIcons(w)}</div><div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div></div>`;
     const notes = open ? [w.frameNote, ...w.stats.map(s => s[3])].filter(Boolean) : [];
-    const detailGrid = open ? detailPanel(w) : "";
+    const detailGrid = open ? (EDITOR ? edPanel(w) : detailPanel(w)) : "";
     if(PHONE.matches){
       return `<article class="wcard ${open?"open":""}">
         <div class="wc-top">${thumb(w)}<div class="wc-name">${nameBlock}</div>${tierCell(w.tier, w.rank)}</div>
@@ -2148,7 +2215,7 @@ function weaponList(mode){
         <div class="wc-perks"><div class="wc-h">Perk 1</div><div class="wc-h">Perk 2</div>${perkNamed(w, w.p1, rowsN)}${perkNamed(w, w.p2, rowsN)}</div>
         ${detailGrid}</article>`;
     }
-    const row = `<tr class="row ${open?"open":""}">
+    const row = `<tr class="row ${open?"open":""} ${EDITOR && edEdited(w) ? "ed-edited" : ""}">
       <td class="c-thumb">${thumb(w)}</td>
       <td class="c-name">${nameBlock}</td>
       <td class="c-ico">${elemCell(w.element)}</td>
@@ -2551,6 +2618,15 @@ document.addEventListener("click", e => {
   if(!t) return;
   const a = t.dataset.act, k = t.dataset.k, id = t.dataset.id;
   switch(a){
+    case "ped": edToggle(id); return;
+    case "ped-add": edAdd(t.dataset.col, t.dataset.n); return;
+    case "ped-rm": edRemove(t.dataset.col, +t.dataset.i); return;
+    case "ped-up": edMove(t.dataset.col, +t.dataset.i, -1); return;
+    case "ped-down": edMove(t.dataset.col, +t.dataset.i, 1); return;
+    case "ped-reset": edReset(); return;
+    case "ped-save": edSave(); return;
+    case "ed-update": edUpdateModal(); return;
+    case "ed-send": edSend(); return;
     case "noop": return;
     case "overlay": case "modal-close": closeModal(); return;
     case "nav": {
@@ -2568,7 +2644,7 @@ document.addEventListener("click", e => {
       const st = stuck(), again = S.ammo === k && S.arch === "all";
       const touch = lastPointer !== "mouse" && t.dataset.dd;
       if(touch && again && ddFor === k){ closeDD(); return; }   // second tap on an open menu closes it
-      S.ammo = k; S.arch = "all"; render(); if(st) toCatbar();
+      S.ammo = EDITOR && again && !touch ? "all" : k; S.arch = "all"; render(); if(st) toCatbar();
       if(touch){ const nt = document.querySelector(`.ammo-tab[data-dd="${k}"]`); if(nt) openDD(nt); }
       return; }
     case "pick": { const st = stuck(); S.ammo = t.dataset.ammo; S.arch = k; render(); if(st) toCatbar(); return; }
@@ -2589,7 +2665,7 @@ document.addEventListener("click", e => {
     case "asort": S.aSort = k; render(); return;
     case "mode": if(k !== MODE){
       const was = Object.entries(S.rc).filter(([, v]) => v).map(([i, v]) => [BYID[i], v]).filter(([w]) => w);
-      applyMode(k); fixScope(); S.open = {}; S.cm = {};
+      applyMode(k); fixScope(); S.open = {}; S.cm = {}; S.ped = null; if(EDITOR) ED.draft = null;
       S.rc = {};
       was.forEach(([w, v]) => { const t = TWIN[MODE][rkeyOf(w)]; if(!t) return;
         const has = m => ((reportCard(t).cards[m] || {}).list || []).length;
@@ -2783,14 +2859,252 @@ document.addEventListener("keydown", e => {
 });
 addEventListener("resize", () => { if(ddFor) closeDD(); });
 
+
+/* ================= PERK EDITOR (Joe, 2026-11-04) =================
+   Built only for Joe (kit/perk_pools.py adds the vault-editor block; the website never has it). Every weapon gets an
+   Edit button; the panel lists the Barrel, Magazine, Perk 1 and Perk 2 columns with every perk that rolls in each
+   (Bungie's roll pools). Click or drag a perk in, drag to reorder, x to remove. Save keeps the edit in this editor
+   (the artifact's database, doc editor/state); only columns that differ from the sheet are kept, so the others keep
+   following the sheets and the player data. UPDATE sends every edit to a scheduled task on Joe's account (Claude Code
+   Remote, fire_trigger), which writes assets/perk_overrides.json, pushes it so the website rebuilds, then refreshes
+   this editor. Edits stay through the weekly updates until Reset. */
+const ED_COLS = [["barrel","Barrel"],["mag","Magazine"],["p1","Perk 1"],["p2","Perk 2"]];
+const ED = {orig:{pve:{}, pvp:{}}, live:{pve:{}, pvp:{}}, desired:{pve:{}, pvp:{}}, draft:null, ref:null, sent:null, sentAt:0, writing:false, drag:null};
+const edClone = x => JSON.parse(JSON.stringify(x == null ? null : x));
+const edModeOf = w => w.id.startsWith("pvp-") ? "pvp" : "pve";
+const edNorm = e => e && Object.keys(e).length ? Object.fromEntries(ED_COLS.filter(([c]) => c in e).map(([c]) => [c, e[c].map(perkName)])) : null;
+const edNormAll = o => Object.fromEntries(["pve", "pvp"].map(m => [m, Object.fromEntries(Object.keys(o[m] || {}).sort().map(id => [id, edNorm(o[m][id])]).filter(([, v]) => v))]));
+const edSame = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const edPool = w => (EDITOR && EDITOR.pools[rkeyOf(w)]) || {};
+function edIcon(w, n){
+  const pool = edPool(w);
+  for(const [c] of ED_COLS){ const hit = (pool[c] || []).find(x => x[0] === n); if(hit && hit[1]) return hit[1]; }
+  return (w.pi || {})[n] || "";
+}
+function edApply(){
+  [["pve", D.weapons], ["pvp", PVPD ? PVPD.weapons : []]].forEach(([mode, list]) => list.forEach(w => {
+    const want = ED.desired[mode][w.id] || {}, o = ED.orig[mode][w.id];
+    if(!o) return;
+    w.pi = w.pi || {};
+    ED_COLS.forEach(([c]) => {
+      w[c] = edClone(c in want ? want[c] : o[c]);
+      w[c].forEach(x => { const n = perkName(x); if(!w.pi[n]){ const id = edIcon(w, n); if(id) w.pi[n] = id; } });
+    });
+  }));
+}
+const edEdited = w => !!ED.desired[edModeOf(w)][w.id];
+const edLive = w => edSame(edNorm(ED.desired[edModeOf(w)][w.id]), edNorm(ED.live[edModeOf(w)][w.id]));
+function edPending(){
+  const out = [];
+  ["pve", "pvp"].forEach(m => {
+    const ids = new Set(Object.keys(ED.desired[m]).concat(Object.keys(ED.live[m])));
+    ids.forEach(id => { if(!edSame(edNorm(ED.desired[m][id]), edNorm(ED.live[m][id]))) out.push([m, id]); });
+  });
+  return out;
+}
+function edHead(shown, total){
+  const nEd = WEAPONS.filter(edEdited).length, nPend = edPending().filter(([m]) => m === MODE).length;
+  return `<div class="result"><span>Showing ${shown} of ${total}</span><span>${nEd ? `${nEd} edited in ${RC_NAME[MODE]}` : `No edits in ${RC_NAME[MODE]} yet`}${nPend ? ` · ${nPend} not on the website yet` : ""}</span></div>`;
+}
+function edNameBlock(w, showArch, open){
+  const tags = [showArch ? esc(archName(w.arch)) : "", w.season ? `S${esc(w.season)}` : "",
+    edEdited(w) ? `<span class="ed-tag">Edited</span>` : "", (edEdited(w) || ED.live[edModeOf(w)][w.id]) && !edLive(w) ? `<span class="ed-tag pending">Not on the website yet</span>` : ""].filter(Boolean).join(" · ");
+  return `<div class="nm ed-nm"><div class="nm-txt"><div class="nm-line"><span class="wname">${esc(w.name)}</span></div>${w.var ? `<div class="variant">${esc(w.var)}</div>` : ""}<div class="wsub">${tags}</div></div>`
+    + `<button type="button" class="ed-btn" data-act="ped" data-id="${w.id}" aria-expanded="${open}" aria-label="${open ? "Close" : "Edit"} the perks on ${esc(w.name)}">Edit</button></div>`;
+}
+const ED_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 15 6-6 6 6"/></svg>';
+const ED_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>';
+function edPanel(w){
+  if(!ED.draft || ED.draft.id !== w.id) return "";
+  const pool = edPool(w), mode = edModeOf(w), o = ED.orig[mode][w.id];
+  const img = n => { const id = edIcon(w, n), u = id ? iconURL("t", id) : ""; return u ? `<img src="${u}" alt="">` : ""; };
+  const cols = ED_COLS.map(([c, label]) => {
+    const list = ED.draft.cols[c], names = list.map(perkName), inPool = new Set((pool[c] || []).map(x => x[0]));
+    const changed = !edSame(names, o[c].map(perkName));
+    const items = list.map((x, i) => { const n = perkName(x), off = inPool.size && !inPool.has(n);
+      return `<li class="ped-item ${off ? "off" : ""}" draggable="true" data-col="${c}" data-i="${i}" ${off ? `title="Not in Bungie's roll pool for this weapon"` : ""}><span class="ped-i">${i + 1}</span><span class="ped-grip" aria-hidden="true"></span>${img(n)}<span class="n">${esc(n)}</span>`
+        + `<span class="ped-mv"><button type="button" data-act="ped-up" data-col="${c}" data-i="${i}" aria-label="Move ${esc(n)} up" ${i ? "" : "disabled"}>${ED_UP}</button><button type="button" data-act="ped-down" data-col="${c}" data-i="${i}" aria-label="Move ${esc(n)} down" ${i < list.length - 1 ? "" : "disabled"}>${ED_DOWN}</button></span>`
+        + `<button type="button" class="ped-x" data-act="ped-rm" data-col="${c}" data-i="${i}" aria-label="Remove ${esc(n)}">${I.clear}</button></li>`; }).join("");
+    const avail = (pool[c] || []).filter(x => !names.includes(x[0]));
+    const chips = avail.map(([n]) => `<button type="button" class="ped-chip" draggable="true" data-act="ped-add" data-col="${c}" data-n="${esc(n)}" title="Add ${esc(n)}">${img(n)}<span>${esc(n)}</span></button>`).join("");
+    return `<section class="ped-col"><h4>${label}${changed ? `<span class="ed-tag">Edited</span>` : ""}</h4>
+      <ol class="ped-list" data-col="${c}" aria-label="${label}, in order">${items || `<li class="ped-empty">Click or drag a perk here</li>`}</ol>
+      <div class="ped-ah">Rolls on this weapon${avail.length ? ` · ${avail.length} more` : ""}</div>
+      <div class="ped-pool" data-col="${c}">${chips || `<span class="ped-empty">${(pool[c] || []).length ? "All of them are listed" : "Bungie lists none for this weapon"}</span>`}</div></section>`;
+  }).join("");
+  const dirty = edDirty(), toSheet = ED_COLS.some(([c]) => !edSame(ED.draft.cols[c].map(perkName), o[c].map(perkName)));
+  return `<div class="ped" data-id="${w.id}"><div class="ped-cols">${cols}</div>
+    <div class="ped-foot"><span class="ped-note">${RC_NAME[mode]} roll. Drag to reorder; the top perk shows first on the website.</span>
+      ${toSheet ? `<button type="button" class="btn ghost" data-act="ped-reset">Reset to sheet</button>` : ""}
+      <button type="button" class="btn primary ped-save" data-act="ped-save" ${dirty ? "" : "disabled"}>Save</button></div></div>`;
+}
+function edDirty(){
+  if(!ED.draft) return false;
+  const w = BYID[ED.draft.id];
+  return ED_COLS.some(([c]) => !edSame(ED.draft.cols[c].map(perkName), (w[c] || []).map(perkName)));
+}
+function edRefresh(){
+  if(!ED.draft) return refreshList();
+  const el = document.querySelector(`.ped[data-id="${CSS.escape(ED.draft.id)}"]`);
+  if(el) el.outerHTML = edPanel(BYID[ED.draft.id]); else refreshList();
+}
+function edToggle(id){
+  if(S.ped === id){ S.ped = null; ED.draft = null; refreshList(); return; }
+  const w = BYID[id]; if(!w) return;
+  if(ED.draft && edDirty()) toast("Unsaved edits on " + BYID[ED.draft.id].name + " were discarded");
+  S.ped = id; ED.draft = {id, cols: Object.fromEntries(ED_COLS.map(([c]) => [c, edClone(w[c] || [])]))};
+  refreshList();
+}
+function edAdd(c, n, at){
+  if(!ED.draft || !n) return;
+  const list = ED.draft.cols[c]; if(list.map(perkName).includes(n)) return;
+  list.splice(at == null ? list.length : at, 0, n); edRefresh();
+}
+function edRemove(c, i){ if(!ED.draft) return; ED.draft.cols[c].splice(i, 1); edRefresh(); }
+function edMove(c, i, by){
+  if(!ED.draft) return; const list = ED.draft.cols[c], j = i + by;
+  if(j < 0 || j >= list.length) return;
+  const [x] = list.splice(i, 1); list.splice(j, 0, x); edRefresh();
+}
+function edReset(){
+  if(!ED.draft) return; const w = BYID[ED.draft.id], o = ED.orig[edModeOf(w)][w.id];
+  ED_COLS.forEach(([c]) => ED.draft.cols[c] = edClone(o[c])); edRefresh();
+}
+function edSave(){
+  if(!ED.draft || !edDirty()) return;
+  const w = BYID[ED.draft.id], mode = edModeOf(w), o = ED.orig[mode][w.id], entry = {};
+  ED_COLS.forEach(([c]) => { const v = ED.draft.cols[c].map(perkName); if(!edSame(v, o[c].map(perkName))) entry[c] = v; });
+  if(Object.keys(entry).length) ED.desired[mode][w.id] = entry; else delete ED.desired[mode][w.id];
+  edApply(); S.ped = null; ED.draft = null;
+  refreshList(); paintUpdate(); edPersist();
+  toast(Object.keys(entry).length ? `${w.name} saved. Press Update to send it to the website` : `${w.name} is back to the sheet's perks. Press Update to send it`);
+}
+/* ---------- drag and drop (mouse); the arrows and x do the same on touch and keyboard ---------- */
+function edDropIndex(listEl, y){
+  const items = [...listEl.querySelectorAll(".ped-item:not(.dragging)")];
+  for(const it of items){ const r = it.getBoundingClientRect(); if(y < r.top + r.height / 2) return {i: +it.dataset.i, el: it, before: true}; }
+  const last = items[items.length - 1]; return {i: ED.draft.cols[listEl.dataset.col].length, el: last, before: false};
+}
+function edClearMarks(){ document.querySelectorAll(".ped-item.before,.ped-item.after,.ped-list.over,.ped-pool.over").forEach(x => x.classList.remove("before", "after", "over")); }
+document.addEventListener("dragstart", e => {
+  if(!EDITOR) return;
+  const it = e.target.closest && e.target.closest(".ped-item, .ped-chip"); if(!it) return;
+  ED.drag = it.classList.contains("ped-item") ? {col: it.dataset.col, from: "list", i: +it.dataset.i} : {col: it.dataset.col, from: "pool", n: it.dataset.n};
+  try{ e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", it.dataset.n || String(it.dataset.i)); }catch(err){}
+  if(ED.drag.from === "list") requestAnimationFrame(() => it.classList.add("dragging"));
+});
+document.addEventListener("dragover", e => {
+  if(!EDITOR || !ED.drag) return;
+  const list = e.target.closest && e.target.closest(".ped-list"), pool = e.target.closest && e.target.closest(".ped-pool");
+  edClearMarks();
+  if(list && list.dataset.col === ED.drag.col){
+    e.preventDefault(); list.classList.add("over");
+    const d = edDropIndex(list, e.clientY); if(d.el) d.el.classList.add(d.before ? "before" : "after");
+  }else if(pool && pool.dataset.col === ED.drag.col && ED.drag.from === "list"){ e.preventDefault(); pool.classList.add("over"); }
+});
+document.addEventListener("drop", e => {
+  if(!EDITOR || !ED.drag || !ED.draft) return;
+  const dr = ED.drag, list = e.target.closest && e.target.closest(".ped-list"), pool = e.target.closest && e.target.closest(".ped-pool");
+  e.preventDefault(); edClearMarks(); ED.drag = null;
+  if(list && list.dataset.col === dr.col){
+    const at = edDropIndex(list, e.clientY).i, arr = ED.draft.cols[dr.col];
+    if(dr.from === "pool") return edAdd(dr.col, dr.n, at);
+    const [x] = arr.splice(dr.i, 1); arr.splice(at > dr.i ? at - 1 : at, 0, x); return edRefresh();
+  }
+  if(pool && pool.dataset.col === dr.col && dr.from === "list") return edRemove(dr.col, dr.i);
+});
+document.addEventListener("dragend", () => { if(!EDITOR) return; ED.drag = null; edClearMarks(); document.querySelectorAll(".ped-item.dragging").forEach(x => x.classList.remove("dragging")); });
+/* ---------- saving in the editor (the artifact's database) ---------- */
+async function edPersist(){
+  if(!ED.ref){ return; }
+  if(ED.writing){ ED.again = true; return; }
+  ED.writing = true;
+  try{
+    do{ ED.again = false; await ED.ref.set({v: 1, pve: ED.desired.pve, pvp: ED.desired.pvp, sent: ED.sent, sentAt: ED.sentAt, savedAt: Date.now()}); }while(ED.again);
+  }catch(e){ toast("Couldn't save the edit in the editor; it stays on this page until you reload"); }
+  finally{ ED.writing = false; }
+}
+async function edAttach(){
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const db = await window.claude.use("db"); if(!db) return;
+    const ref = db.doc("editor/state");
+    ref.onSnapshot(snap => {
+      ED.ref = ref;
+      if(ED.writing || (snap.metadata && snap.metadata.hasPendingWrites) || !snap.exists) return;
+      const d = snap.data() || {};
+      ED.desired = {pve: d.pve || {}, pvp: d.pvp || {}}; ED.sent = d.sent || null; ED.sentAt = d.sentAt || 0;
+      edApply(); paintUpdate();
+      if(!ED.draft) refreshList();
+    }, () => {});
+  }catch(e){}
+}
+/* ---------- UPDATE: send every edit to the website ---------- */
+function paintUpdate(){
+  const b = document.getElementById("edUpdate"); if(!b) return;
+  const n = edPending().length, all = edNormAll(ED.desired), sent = ED.sent && edSame(edNormAll(ED.sent), all) && n > 0;
+  b.disabled = !n || sent || !EDITOR.task;
+  b.classList.toggle("sent", !!sent);
+  b.querySelector(".ed-l").textContent = sent ? "Updating" : "Update";
+  b.querySelector(".ed-n").textContent = n || "";
+  const tip = !EDITOR.task ? "The update task isn't set up yet" : sent ? `Sent ${new Date(ED.sentAt).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"})}. The website and this editor refresh in about 5 to 10 minutes`
+    : n ? `Send ${plural(n, "edited weapon", "edited weapons")} to the website` : "Nothing new to send: the website already has every saved edit";
+  b.dataset.tip = tip; b.setAttribute("aria-label", tip);
+}
+function edUpdateModal(){
+  const pend = edPending(); if(!pend.length) return;
+  const rows = pend.map(([m, id]) => { const w = BYID[id]; const e = ED.desired[m][id];
+    return `<li><b>${esc(w ? w.name : id)}</b> · ${RC_NAME[m]} · ${e ? Object.keys(e).map(c => ED_COLS.find(x => x[0] === c)[1]).join(", ") : "back to the sheet"}</li>`; }).join("");
+  openModal(`<div class="modal-head"><h2>Update the website</h2>${closeX}</div>
+    <div class="modal-body"><p>These edits go to the website. It rebuilds in about 5 to 10 minutes, and this editor refreshes itself when it's done.</p><ul class="ed-list">${rows}</ul></div>
+    <div class="modal-foot"><button type="button" class="btn ghost" data-act="modal-close">Cancel</button><button type="button" class="btn primary" data-act="ed-send" data-autofocus>Update website</button></div>`);
+}
+async function edSend(){
+  const btn = document.querySelector('[data-act="ed-send"]'); if(btn){ btn.disabled = true; btn.textContent = "Sending"; }
+  const payload = {v: 1, ...edNormAll(ED.desired)}, text = "PERK_OVERRIDES_JSON\n" + JSON.stringify(payload);
+  if(text.length > 60000){ closeModal(); toast("Too many edits to send at once; tell Claude in chat instead"); return; }
+  try{
+    const mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null;
+    if(!mcp){ closeModal(); toast("Open this editor in Claude to update the website"); return; }
+    await mcp.callTool("Claude Code Remote", "fire_trigger", {trigger_id: EDITOR.task, text}, {cache: false});
+    ED.sent = payload; ED.sentAt = Date.now(); closeModal(); paintUpdate(); edPersist();
+    toast("Sent. The website updates in about 5 to 10 minutes");
+  }catch(e){
+    closeModal();
+    const code = e && e.code;
+    toast(code === "not_in_manifest" ? "Allow Claude Code Remote for this editor (Permissions) to update the website"
+      : code === "server_not_connected" || code === "needs_reauth" ? "Claude Code Remote isn't connected; reconnect it in claude.ai Settings, Connectors"
+      : "The update didn't go through" + (e && e.message ? `: ${e.message}` : "") + ". Try again in a minute");
+  }
+}
+function edInit(){
+  document.documentElement.classList.add("editor");
+  ED.live = {pve: edClone((EDITOR.overrides || {}).pve || {}), pvp: edClone((EDITOR.overrides || {}).pvp || {})};
+  [["pve", D.weapons], ["pvp", PVPD ? PVPD.weapons : []]].forEach(([mode, list]) => list.forEach(w => {
+    const sh = ((EDITOR.sheet || {})[mode] || {})[w.id] || {};
+    ED.orig[mode][w.id] = Object.fromEntries(ED_COLS.map(([c]) => [c, edClone(c in sh ? sh[c] : (w[c] || []))]));
+  }));
+  ED.desired = edClone(ED.live); edApply();
+  marks = {}; PREVIEW = false; S.view = "weapons"; S.ped = null;   // no sample rolls or roll borders in the editor
+  const brand = document.querySelector(".brand");
+  if(brand) brand.querySelector(".info-btn").insertAdjacentHTML("beforebegin", `<span class="ed-chip">PERK EDITOR</span>`);
+  const tr = document.querySelector(".top-right");
+  if(tr) tr.insertAdjacentHTML("beforeend", `<button type="button" class="ed-update" id="edUpdate" data-act="ed-update" disabled><span class="ed-l">Update</span><b class="ed-n"></b></button>`);
+  document.title = "Perk Editor";
+  paintUpdate(); edAttach();
+}
+
 try{ PHONE.addEventListener("change", () => render()); }catch(err){}
 function fromHash(){ const h = location.hash.replace("#",""); if(["drops","weapons","armor","vault"].includes(h)) S.view = h; render(); }
 addEventListener("hashchange", fromHash);
 setSync("loading");
 paintVol();
 paintSync();
-fromHash();
-initSync();
-bootBungie();
+if(EDITOR){ edInit(); render(); }
+else{
+  fromHash();
+  initSync();
+  bootBungie();
+}
 })();
 </script>

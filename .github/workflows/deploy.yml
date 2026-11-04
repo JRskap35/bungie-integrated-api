@@ -47,6 +47,12 @@ jobs:
         env:
           SITE_URL: https://endgameapi.pages.dev/
         run: bash kit/build.sh
+      - name: Keep the perk editor build (the editor's UPDATE task republishes it in Claude)
+        uses: actions/upload-artifact@v4
+        with:
+          name: perk-editor
+          path: build/editor/perk-editor.html
+          retention-days: 30
       - name: Publish to Cloudflare Pages (endgameapi.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true

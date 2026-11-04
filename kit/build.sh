@@ -44,9 +44,11 @@ python3 -I kit/bungie_hashes.py build/data_epx.json "$CACHE" build/hashes.json
 python3 -I kit/pvp_usage.py build/hashes.json bungie/config.json build/pvp_store_prev.json assets/pvp_usage_seed.json build/pvp_use.json build/pvp_perks.json site/pvp_usage.json
 python3 -I kit/pvp_rank.py build/data_epx.json build/data_ep.json build/pvp_use.json build/pvp_perks.json build/wishlist.txt build/hashes.json build/data_epr.json build/pvp_rank.txt
 { echo '## PvP ranking from players'; echo '```'; cat build/pvp_rank.txt; echo '```'; } >> "$SUMMARY" || true
+# Joe's manual edits from the perk editor (assets/perk_overrides.json): they win over the sheets and the player data
+python3 -I kit/overrides.py build/data_epr.json assets/perk_overrides.json build/data_epo.json build/perk_sheet.json | tee -a "$SUMMARY"
 
 # ---------- 6. Bungie's official icons and the account sync maps ----------
-python3 -I kit/bungie.py build/data_epr.json build/icons.json build/ticons.json assets/elements.json build/bungie "$CACHE"
+python3 -I kit/bungie.py build/data_epo.json build/icons.json build/ticons.json assets/elements.json build/bungie "$CACHE"
 cat build/bungie/report.txt >> "$SUMMARY" || true
 python3 -I kit/mode_icons.py build/bungie/icons.json build/icons_bia.json "$CACHE"
 # the hash map from step 4 fits as long as the icon step kept every weapon's name; otherwise it is rebuilt
@@ -76,3 +78,8 @@ python3 -I kit/assemble.py src/template.html build/bungie/data.json build/icons_
 if [ -s build/prev.html ]; then
   { echo '## What changed on the sheets'; echo '```'; python3 -I kit/diff.py build/prev.html build/data.json build/bungie/data.json; echo '```'; } >> "$SUMMARY" || true
 fi
+
+# ---------- 8. Joe's perk editor: a Claude page built from the same data (kept with the run, never put on the website) ----------
+mkdir -p build/editor
+python3 -I kit/perk_pools.py build/bungie/data.json build/bungie/ticons.json "$CACHE" assets/perk_overrides.json build/perk_sheet.json assets/editor_config.json build/editor.json build/editor_ticons.json
+python3 -I kit/assemble.py --editor build/editor.json src/template.html build/bungie/data.json build/icons_bia.json build/editor/perk-editor.html assets/stat_icons.json build/editor_ticons.json build/bungie/elements.json assets/brand.json
