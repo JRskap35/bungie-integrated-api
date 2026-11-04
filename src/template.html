@@ -1961,15 +1961,18 @@ function vaultOthers(w, cid){
 function dropOwnBox(w, c){ return ownSummary(w, c.cid); }
 function ownSummary(w, cid){
   const drop = cid != null, o = vaultOthers(w, cid), chips = [], words = [];
-  ["pve", "pvp"].forEach(m => ["god", "semi"].forEach(g => {
-    const n = o[m][g]; if(!n) return;
-    chips.push(`<span class="own-c g-${g}"><b>${n}</b><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span></span>`);
-    words.push(`${n} ${RC_NAME[m]} ${g === "god" ? (n === 1 ? "god roll" : "god rolls") : (n === 1 ? "semi-god roll" : "semi-god rolls")}`);
-  }));
-  if(o.trash){ chips.push(`<span class="own-c g-trash"><b>${o.trash}</b><span class="own-t" aria-hidden="true">${I.trash}</span></span>`); words.push(`${plural(o.trash, "copy", "copies")} safe to dismantle`); }
+  // one icon per mode, the best roll owned there (a god roll outweighs a semi-god roll), then copies to dismantle;
+  // each icon carries its own count (Joe, 2026-11-04). The hover text still lists every grade.
+  ["pve", "pvp"].forEach(m => {
+    ["god", "semi"].forEach(g => { const n = o[m][g]; if(n) words.push(`${n} ${RC_NAME[m]} ${g === "god" ? (n === 1 ? "god roll" : "god rolls") : (n === 1 ? "semi-god roll" : "semi-god rolls")}`); });
+    const g = o[m].god ? "god" : o[m].semi ? "semi" : null; if(!g) return;
+    chips.push(`<span class="own-c g-${g}" title="${RC_NAME[m]} ${TAG[g]}"><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span><b>${o[m][g]}</b></span>`);
+  });
+  if(o.trash){ chips.push(`<span class="own-c g-trash" title="Safe to dismantle"><span class="own-t" aria-hidden="true">${I.trash}</span><b>${o.trash}</b></span>`); words.push(`${plural(o.trash, "copy", "copies")} safe to dismantle`); }
   const open = S.rc[w.id] === "all", has = ownedCount(w) > 0;
   const tip = (o.n ? `${drop ? "Already in your vault" : "In your vault"}: ${words.join(", ") || plural(o.n, drop ? "other copy" : "copy", drop ? "other copies" : "copies")}` : drop ? "This is your first copy" : "None on your account") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
-  const body = `<span class="own-l">Obtained</span>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : `<b class="own-n ${o.n ? "" : "own-none"}">${o.n ? o.n : drop ? "New" : ""}</b>`}`;
+  // Obtained | how many (New on a drop with none before) | the rolls among them
+  const body = `<span class="own-l">Obtained</span><b class="own-n ${o.n ? "" : "own-none"}">${o.n ? o.n : drop ? "New" : ""}</b>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : ""}`;
   return has ? `<button type="button" class="own has own-drop ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${esc(tip)}" aria-label="${esc(tip)}">${body}</button>`
              : `<span class="own own-drop" title="${esc(tip)}">${body}</span>`;
 }
