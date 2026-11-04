@@ -1814,6 +1814,7 @@ function ownedCount(w){
 function ownBox(w){
   const n = ownedCount(w);
   if(!n) return `<span class="own" title="None on your account"><span class="own-l">Obtained</span><b class="own-n"></b></span>`;
+  return ownSummary(w, null);   // icons with counts (Joe, 2026-11-04); the count only box below is no longer used
   const open = S.rc[w.id] === "all", tip = `${n} ${n === 1 ? "copy" : "copies"} on your account. ${open ? "Hide them" : "Show them all"}`;
   return `<button type="button" class="own has ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${tip}" aria-label="${tip}"><span class="own-l">Obtained</span><b class="own-n">${n}</b></button>`;
 }
@@ -1854,7 +1855,7 @@ function rcIcons(w){
       : `${RC_NAME[m]}: no god or semi-god roll owned`;
     const glyph = m === "trash" ? I.trash : `<span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>`;
     // Change 9 (Joe, 2026-11-03): these icons only show the grades now; the Obtained box opens the copies
-    return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}${n ? `<b class="rc-n">${n}</b>` : ""}</span>`;
+    return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}</span>`;
   }).join("") + `</span>`;
 }
 // one copy's parts. Colors follow ONE mode, the one being looked at (the PvE or PvP report card icon that opened the
@@ -1957,8 +1958,9 @@ function vaultOthers(w, cid){
   const per = m => { const l = rc.cards[m].list.filter(other); return {god: l.filter(x => x.g === "god").length, semi: l.filter(x => x.g === "semi").length}; };
   return {pve: per("pve"), pvp: per("pvp"), trash: rc.cards.trash.list.filter(other).length, n: rc.cards.all.list.filter(other).length};
 }
-function dropOwnBox(w, c){
-  const o = vaultOthers(w, c.cid), chips = [], words = [];
+function dropOwnBox(w, c){ return ownSummary(w, c.cid); }
+function ownSummary(w, cid){
+  const drop = cid != null, o = vaultOthers(w, cid), chips = [], words = [];
   ["pve", "pvp"].forEach(m => ["god", "semi"].forEach(g => {
     const n = o[m][g]; if(!n) return;
     chips.push(`<span class="own-c g-${g}"><b>${n}</b><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span></span>`);
@@ -1966,8 +1968,8 @@ function dropOwnBox(w, c){
   }));
   if(o.trash){ chips.push(`<span class="own-c g-trash"><b>${o.trash}</b><span class="own-t" aria-hidden="true">${I.trash}</span></span>`); words.push(`${plural(o.trash, "copy", "copies")} safe to dismantle`); }
   const open = S.rc[w.id] === "all", has = ownedCount(w) > 0;
-  const tip = (o.n ? `Already in your vault: ${words.join(", ") || plural(o.n, "other copy", "other copies")}` : "This is your first copy") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
-  const body = `<span class="own-l">Obtained</span>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : `<b class="own-n own-none">${o.n ? o.n : "New"}</b>`}`;
+  const tip = (o.n ? `${drop ? "Already in your vault" : "In your vault"}: ${words.join(", ") || plural(o.n, drop ? "other copy" : "copy", drop ? "other copies" : "copies")}` : drop ? "This is your first copy" : "None on your account") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
+  const body = `<span class="own-l">Obtained</span>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : `<b class="own-n ${o.n ? "" : "own-none"}">${o.n ? o.n : drop ? "New" : ""}</b>`}`;
   return has ? `<button type="button" class="own has own-drop ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${esc(tip)}" aria-label="${esc(tip)}">${body}</button>`
              : `<span class="own own-drop" title="${esc(tip)}">${body}</span>`;
 }
