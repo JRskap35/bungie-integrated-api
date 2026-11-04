@@ -1,0 +1,17 @@
+name: Check the live site (temporary)
+on:
+  push:
+    branches: [diag-live]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: curl -sS -o /dev/null -w "HTTP %{http_code}, %{size_download} bytes in %{time_total}s\n" https://endgameapi.pages.dev/
+      - run: curl -sS -I https://endgameapi.pages.dev/ | head -20
+      - run: npm i playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1 && node .github/diag/check.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: shots, path: "live_*.png"}
