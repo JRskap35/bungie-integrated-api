@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write     # the perk editor build is kept on the perk-editor-build branch
   pages: write
   id-token: write
 
@@ -47,12 +47,18 @@ jobs:
         env:
           SITE_URL: https://endgameapi.pages.dev/
         run: bash kit/build.sh
-      - name: Keep the perk editor build (the editor's UPDATE task republishes it in Claude)
-        uses: actions/upload-artifact@v4
-        with:
-          name: perk-editor
-          path: build/editor/perk-editor.html
-          retention-days: 30
+      # the perk editor's UPDATE task republishes this page in Claude; it reads it through git (one commit, replaced each run)
+      - name: Keep the perk editor build on the perk-editor-build branch
+        continue-on-error: true
+        run: |
+          cd build/editor
+          git init -q -b perk-editor-build
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add perk-editor.html
+          git commit -qm "Perk editor build from ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" perk-editor-build
+          echo "Perk editor build saved for ${GITHUB_SHA::7}"
       - name: Publish to Cloudflare Pages (endgameapi.pages.dev)
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true
