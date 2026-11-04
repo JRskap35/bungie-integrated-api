@@ -1818,7 +1818,8 @@ function ownedCount(w){
 function ownBox(w){
   const n = ownedCount(w);
   if(!n) return `<span class="own" title="None on your account"><span class="own-l">Obtained</span><b class="own-n"></b></span>`;
-  return ownSummary(w, null);   // icons with counts (Joe, 2026-11-04); the count only box below is no longer used
+  // Weapons page: the box just counts copies; the grade icons beside it carry their own counts (Joe, 2026-11-04).
+  // New Drops uses ownSummary instead: count, then the rolls already in the vault as icons.
   const open = S.rc[w.id] === "all", tip = `${n} ${n === 1 ? "copy" : "copies"} on your account. ${open ? "Hide them" : "Show them all"}`;
   return `<button type="button" class="own has ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${tip}" aria-label="${tip}"><span class="own-l">Obtained</span><b class="own-n">${n}</b></button>`;
 }
@@ -1859,7 +1860,7 @@ function rcIcons(w){
       : `${RC_NAME[m]}: no god or semi-god roll owned`;
     const glyph = m === "trash" ? I.trash : `<span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>`;
     // Change 9 (Joe, 2026-11-03): these icons only show the grades now; the Obtained box opens the copies
-    return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}</span>`;
+    return `<span class="rc-b rc-${m} st-${c.state}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}${n ? `<b class="rc-n">${n}</b>` : ""}</span>`;
   }).join("") + `</span>`;
 }
 // one copy's parts. Colors follow ONE mode, the one being looked at (the PvE or PvP report card icon that opened the
