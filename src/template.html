@@ -281,7 +281,10 @@ button.rc-b:hover{background:rgba(255,255,255,.07)}
 /* Change 1 (Joe, 2026-11-03): the PvE, PvP and Safe to dismantle icons sit on their own line under every weapon's name,
    above the type and season line, and all three read the same size. The shields' art fills about 81 percent of its
    box, the trash can's lines about 65 percent, so the can is drawn larger to match the shields' height. */
-.nm-rc{display:flex;margin:5px 0 10px}
+.nm-rc{display:flex;margin:5px 0 10px;align-items:center;flex-wrap:wrap;gap:8px 12px}
+/* the arrow stays right beside the name; the Obtained box sits with the grade icons underneath (Joe, 2026-11-04) */
+.nm-line{flex-wrap:nowrap}
+.nm-line .name-btn{min-width:0}
 .nm-line .expand{margin-left:-6px}
 .own{display:inline-flex;align-items:stretch;height:22px;border:1px solid var(--line-2);border-radius:3px;overflow:hidden;flex:none;vertical-align:middle}
 .own-l{display:grid;place-items:center;padding:0 7px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);background:rgba(255,255,255,.03)}
@@ -293,9 +296,10 @@ button.own:hover,button.own.on{box-shadow:0 0 0 1px color-mix(in srgb,var(--acce
 button.own.on .own-n{background:color-mix(in srgb,var(--accent) 34%,transparent)}
 .own-drop{height:26px}
 .own-cs{display:flex;align-items:stretch;border-left:1px solid color-mix(in srgb,var(--accent) 60%,var(--line-2));background:color-mix(in srgb,var(--accent) 10%,transparent)}
-.own-c{display:inline-flex;align-items:center;gap:4px;padding:0 7px;font:600 12px/1 var(--font-mono);color:var(--fg)}
+.own-c{display:inline-flex;align-items:center;gap:3px;padding:0 6px;font:600 12px/1 var(--font-mono);color:var(--fg)}
 .own-c + .own-c{border-left:1px solid var(--line)}
-.own-c .rc-ico{width:16px;height:16px}
+.own-c .rc-ico{width:15px;height:15px}
+.nm-rc .own-l{padding:0 6px}
 .own-c.g-god .rc-ico{color:var(--god);filter:drop-shadow(0 0 3px rgba(63,220,134,.5))}
 .own-c.g-semi .rc-ico{color:var(--semi);filter:drop-shadow(0 0 3px rgba(243,198,74,.45))}
 .own-t{display:grid;color:#ef8a7e}.own-t svg{width:15px;height:15px}
@@ -306,7 +310,7 @@ button.own.on .own-cs{background:color-mix(in srgb,var(--accent) 24%,transparent
 .drop .rc-panel{margin-top:2px}
 .own.has .own-n{border-left-color:color-mix(in srgb,var(--accent) 60%,var(--line-2));background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .drop-nl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.nm-rc .rc{gap:14px;padding:0}
+.nm-rc .rc{gap:10px;padding:0}
 .rc-b svg{width:26px;height:26px}
 .wtable .rc-b svg{width:28px;height:28px}
 .rc-panel{border:1px solid var(--line-2);border-left:2px solid var(--rcc,var(--line-2));background:rgba(0,0,0,.3);border-radius:3px;padding:12px 14px;display:grid;gap:10px;text-align:left}
@@ -2247,7 +2251,7 @@ function weaponList(mode){
   const rows = items.map(w => {
     const m = marks[w.id], open = EDITOR ? S.ped === w.id : !!S.open[w.id];
     const rowsN = Math.max(w.p1.length, w.p2.length, 1);
-    const nameBlock = EDITOR ? edNameBlock(w, showArch, open) : `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button>${ownBox(w)}<button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="nm-rc">${rcIcons(w)}</div><div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div></div>`;
+    const nameBlock = EDITOR ? edNameBlock(w, showArch, open) : `<div class="nm"><div class="nm-txt"><div class="nm-line"><button type="button" class="name-btn" data-act="open" data-id="${w.id}" aria-expanded="${open}"><span class="wname">${esc(w.name)}</span></button><button type="button" class="expand" data-act="open" data-id="${w.id}" aria-label="${open?"Hide":"Show"} details for ${esc(w.name)}">${I.chev}</button></div>${w.var?`<div class="variant">${esc(w.var)}</div>`:""}<div class="nm-rc">${ownBox(w)}${rcIcons(w)}</div><div class="wsub">${[showArch?esc(archName(w.arch)):"", w.season?`S${esc(w.season)}`:"", w.shop?`<span class="shoptag" title="Shopping List pick: ${esc(w.shop.role)}${w.shop.priority?` (${esc(w.shop.priority)} priority)`:""}">Shopping List</span>`:"", m?`<span class="mtag mt-${m}">${MLABEL[m]}</span>`:""].filter(Boolean).join(" · ")}</div></div></div>`;
     const notes = open ? [w.frameNote, ...w.stats.map(s => s[3])].filter(Boolean) : [];
     const detailGrid = open ? (EDITOR ? edPanel(w) : detailPanel(w)) : "";
     if(PHONE.matches){
