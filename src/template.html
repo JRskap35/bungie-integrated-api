@@ -335,7 +335,7 @@ button.rkey:disabled{opacity:.35;cursor:not-allowed}
 .rkey-pve.on{border-color:color-mix(in srgb,var(--pve) 75%,transparent);background:color-mix(in srgb,var(--pve) 14%,transparent)}
 .rkey-pvp.on{border-color:color-mix(in srgb,var(--pvp) 75%,transparent);background:color-mix(in srgb,var(--pvp) 14%,transparent)}
 .drop-verdict{align-items:center}
-.drop-verdict .rkeys{margin-left:4px}
+.drop-verdict .rkeys{margin-left:0;padding-left:0;border-left:0}
 .rc-copy-h{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;font-size:12.5px}
 .rc-tag{font-family:var(--font-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
 .rc-tag.g-god{color:var(--god)} .rc-tag.g-semi{color:var(--semi)} .rc-tag.g-none{color:#ef8a7e}
@@ -2006,7 +2006,7 @@ function dropCard(d){
     <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${dropOwnBox(w, d.c)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${dropTier}</div>
-    <div class="drop-verdict">${verdict}${keyPills(dm, d.c.cid, L)}</div>
+    <div class="drop-verdict">${keyPills(dm, d.c.cid, L)}</div>
     ${copyGrid(w, d.c, L, dm)}
     ${S.rc[w.id] === "all" ? rcPanel(w) : ""}
   </article>`;
