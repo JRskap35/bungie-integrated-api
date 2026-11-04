@@ -291,6 +291,17 @@ button.rc-b:hover{background:rgba(255,255,255,.07)}
 button.own{appearance:none;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
 button.own:hover,button.own.on{box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 60%,transparent),0 0 10px color-mix(in srgb,var(--accent) 25%,transparent)}
 button.own.on .own-n{background:color-mix(in srgb,var(--accent) 34%,transparent)}
+.own-drop{height:26px}
+.own-cs{display:flex;align-items:stretch;border-left:1px solid color-mix(in srgb,var(--accent) 60%,var(--line-2));background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.own-c{display:inline-flex;align-items:center;gap:4px;padding:0 7px;font:600 12px/1 var(--font-mono);color:var(--fg)}
+.own-c + .own-c{border-left:1px solid var(--line)}
+.own-c .rc-ico{width:16px;height:16px}
+.own-c.g-god .rc-ico{color:var(--god);filter:drop-shadow(0 0 3px rgba(63,220,134,.5))}
+.own-c.g-semi .rc-ico{color:var(--semi);filter:drop-shadow(0 0 3px rgba(243,198,74,.45))}
+.own-t{display:grid;color:#ef8a7e}.own-t svg{width:15px;height:15px}
+.own-none{color:var(--faint)!important;font-size:11px!important;letter-spacing:.06em}
+button.own.on .own-cs{background:color-mix(in srgb,var(--accent) 24%,transparent)}
+.repeat{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:2px}
 .rc-panel-all{--rcc:var(--accent)}
 .drop .rc-panel{margin-top:2px}
 .own.has .own-n{border-left-color:color-mix(in srgb,var(--accent) 60%,var(--line-2));background:color-mix(in srgb,var(--accent) 16%,transparent)}
@@ -1931,20 +1942,47 @@ function copyIcons(c, L){
     const st = m === "trash" ? (trash ? "trash" : "none") : g[m] === "na" ? "na" : keep(g[m]) ? g[m] : "none";
     const tip = m === "trash" ? (trash ? "Safe to dismantle" : "Keep it") : g[m] === "na" ? `Not rated in ${RC_NAME[m]}` : `${RC_NAME[m]}: ${keep(g[m]) ? TAG[g[m]] : "not a keeper"}`;
     const glyph = m === "trash" ? I.trash : `<span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>`;
-    return `<span class="rc-b rc-${m} st-${st}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}${st === "none" || st === "na" ? "" : `<b class="rc-n">1</b>`}</span>`;
+    return `<span class="rc-b rc-${m} st-${st}" tabindex="0" role="img" aria-label="${esc(tip)}" data-tip="${esc(tip)}">${glyph}</span>`;
   };
   // the copy's light level sits first, left of the PvE, PvP and dismantle icons (Joe, 2026-11-03)
   const pow = c.pl ? `<span class="rc-pow" role="img" aria-label="Light level ${c.pl}" data-tip="Light level ${c.pl}"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .6 7.4 4.6 11.4 6 7.4 7.4 6 11.4 4.6 7.4.6 6 4.6 4.6Z"/></svg>${c.pl}</span>` : "";
   return {g, trash, html: `<span class="rc">${pow}${icon("pve")}${icon("pvp")}${icon("trash")}</span>`};
 }
 /* ---------- New Drops page ---------- */
+/* What else of this weapon is already in the vault, this drop left out (Joe, 2026-11-04): the drop card's Obtained box
+   shows it as icons (PvE / PvP god and semi-god rolls, copies to dismantle) with their counts, so a repeat god roll is
+   clear without opening the list, and the verdict notes "you already have 1". */
+function vaultOthers(w, cid){
+  const rc = reportCard(w), other = x => !x.c || x.c.cid !== cid;
+  const per = m => { const l = rc.cards[m].list.filter(other); return {god: l.filter(x => x.g === "god").length, semi: l.filter(x => x.g === "semi").length}; };
+  return {pve: per("pve"), pvp: per("pvp"), trash: rc.cards.trash.list.filter(other).length, n: rc.cards.all.list.filter(other).length};
+}
+function dropOwnBox(w, c){
+  const o = vaultOthers(w, c.cid), chips = [], words = [];
+  ["pve", "pvp"].forEach(m => ["god", "semi"].forEach(g => {
+    const n = o[m][g]; if(!n) return;
+    chips.push(`<span class="own-c g-${g}"><b>${n}</b><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span></span>`);
+    words.push(`${n} ${RC_NAME[m]} ${g === "god" ? (n === 1 ? "god roll" : "god rolls") : (n === 1 ? "semi-god roll" : "semi-god rolls")}`);
+  }));
+  if(o.trash){ chips.push(`<span class="own-c g-trash"><b>${o.trash}</b><span class="own-t" aria-hidden="true">${I.trash}</span></span>`); words.push(`${plural(o.trash, "copy", "copies")} safe to dismantle`); }
+  const open = S.rc[w.id] === "all", has = ownedCount(w) > 0;
+  const tip = (o.n ? `Already in your vault: ${words.join(", ") || plural(o.n, "other copy", "other copies")}` : "This is your first copy") + (has ? `. ${open ? "Hide" : "Show"} every copy` : "");
+  const body = `<span class="own-l">Obtained</span>${chips.length ? `<span class="own-cs">${chips.join("")}</span>` : `<b class="own-n own-none">${o.n ? o.n : "New"}</b>`}`;
+  return has ? `<button type="button" class="own has own-drop ${open ? "on" : ""}" data-act="rc" data-id="${w.id}" data-k="all" aria-expanded="${open}" title="${esc(tip)}" aria-label="${esc(tip)}">${body}</button>`
+             : `<span class="own own-drop" title="${esc(tip)}">${body}</span>`;
+}
+function repeatNote(m, g, o){
+  const same = o[m][g], better = g === "semi" ? o[m].god : 0;
+  if(!same && !better) return "";
+  return `<span class="repeat">${same ? `you already have ${same}` : `you already have a ${RC_NAME[m]} god roll`}</span>`;
+}
 function dropCard(d){
   const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}, w = L[MODE] || L.pve || L.pvp;
   if(!w) return "";
   const keep = x => x === "god" || x === "semi";
-  const ci = copyIcons(d.c, L), g = ci.g, trash = ci.trash;
+  const ci = copyIcons(d.c, L), g = ci.g, trash = ci.trash, others = vaultOthers(w, d.c.cid);
   const verdict = trash ? `<span class="rc-tag g-none">Safe to dismantle</span>`
-    : ["pve", "pvp"].filter(m => keep(g[m])).map(m => `<span class="rc-tag g-${g[m]}">${RC_NAME[m]} ${TAG[g[m]]}</span>`).join(`<span class="dim">·</span>`);
+    : ["pve", "pvp"].filter(m => keep(g[m])).map(m => `<span class="rc-tag g-${g[m]}">${RC_NAME[m]} ${TAG[g[m]]}</span>${repeatNote(m, g[m], others)}`).join(`<span class="dim">·</span>`);
   const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
   const best = trash ? "trash" : g.pve === "god" || g.pvp === "god" ? "god" : "semi";
@@ -1952,7 +1990,7 @@ function dropCard(d){
   // the tier follows the PvE roll / PvP roll pill too, so the card shows that sheet's tier and rank (Joe, 2026-11-03)
   const tw = L[dm] || w, dropTier = tierCell(tw.tier, tw.rank).replace('<div class="tier-cell"', `<div class="tier-cell" title="${RC_NAME[dm]} tier: ${esc(tw.tier)}${tw.rank != null ? ` #${tw.rank}` : ""}"`);
   return `<article class="drop v-${best}">
-    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${ownBox(w)}</span>
+    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${dropOwnBox(w, d.c)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
       <div class="drop-where">${ci.html}${locChip(d.c)}</div>${dropTier}</div>
     <div class="drop-verdict">${verdict}${keyPills(dm, d.c.cid, L)}</div>
