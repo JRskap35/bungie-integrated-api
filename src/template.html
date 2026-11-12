@@ -928,6 +928,35 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .ed-list b{color:var(--fg);font-weight:600}
 @media (max-width:1100px){.ped-cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.ped-cols{grid-template-columns:1fr}.ed-search{flex-basis:180px}.ed-update{padding:0 12px}.ed-chip{display:none}}
+
+/* ---------- New Drops, simplified (Joe, 2026-11-12) ---------- */
+.drop.dv-upgrade{border-color:var(--god);box-shadow:0 0 0 1px rgba(63,220,134,.25),0 0 16px rgba(63,220,134,.25)}
+.drop.dv-new{border-color:#5aa9ff;box-shadow:0 0 0 1px rgba(90,169,255,.25),0 0 14px rgba(90,169,255,.2)}
+.drop.dv-duplicate{border-color:var(--line-2)}
+.drop.dv-dismantle{border-color:rgba(239,138,126,.55);opacity:.82}
+.dv{display:grid;gap:5px;min-width:0;flex:1 1 280px}
+.dv-label{justify-self:start;font:700 15px/1 var(--font-display);letter-spacing:.16em;text-transform:uppercase;padding:6px 11px 5px;border-radius:2px;border:1px solid}
+.dv-upgrade .dv-label{background:var(--god);border-color:var(--god);color:#06200f}
+.dv-new .dv-label{background:#5aa9ff;border-color:#5aa9ff;color:#04162b}
+.dv-duplicate .dv-label{color:var(--muted);border-color:var(--line-2)}
+.dv-dismantle .dv-label{color:#ef8a7e;border-color:rgba(239,138,126,.6)}
+.dv-why{font-size:14px;color:var(--fg);line-height:1.35}
+.dv-dismantle .dv-why,.dv-duplicate .dv-why{color:var(--muted)}
+.dv-modes{display:flex;gap:12px;flex-wrap:wrap}
+.dv-m{display:inline-flex;align-items:center;gap:5px;font:500 11px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.dv-m .rc-ico{width:14px;height:14px}
+.dv-m.r2{color:var(--god)}.dv-m.r1{color:var(--semi)}
+.dv-more{appearance:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--fg);font:600 13px var(--font-body);border-radius:3px;cursor:pointer}
+.dv-more:hover{border-color:var(--mode)}
+.dv-more svg{width:14px;height:14px;transition:transform .15s}
+.dv-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+.dv-tally{display:flex;gap:18px;flex-wrap:wrap;margin:-4px 0 12px;font-size:13.5px;color:var(--muted)}
+.dv-t{display:inline-flex;align-items:center;gap:7px}
+.dv-t i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.dv-t.dv-upgrade i{background:var(--god)}.dv-t.dv-new i{background:#5aa9ff}.dv-t.dv-duplicate i{background:var(--line-2)}.dv-t.dv-dismantle i{background:#ef8a7e}
+.drop .own-drop{justify-self:start}
+@media (min-width:701px){.drop-top .drop-name{flex:0 0 300px}}   /* the verdicts line up down the page */
+@media (max-width:700px){.dv{flex-basis:100%;order:3}.dv-more{order:4}}
 </style>
 
 <div id="bgart" aria-hidden="true"></div>
@@ -2004,26 +2033,59 @@ function repeatNote(m, g, o){
   if(!same && !better) return "";
   return `<span class="repeat">${same ? `you already have ${same}` : `you already have a ${RC_NAME[m]} god roll`}</span>`;
 }
+/* New Drops, simplified (Joe, 2026-11-12): every drop answers one question, is it worth keeping? It is compared, mode by
+   mode, with the best copy you already had (and with any better copy of the same weapon in the same batch of drops):
+     Upgrade    better than anything you had in at least one mode (a PvE god roll that is also a PvP god roll beats a
+                copy that was only a PvE god roll)
+     New        the first copy of the weapon, and a keeper
+     Duplicate  a keeper, but you already have one as good or better in every mode it counts for
+     Dismantle  not a god or semi-god roll in PvE or PvP
+   One label and one plain line say why; the perks, toggles and copies open with Details. Upgrades sort first. */
+const DV_RANK = g => g === "god" ? 2 : g === "semi" ? 1 : 0;
+const DV_WORD = r => r === 2 ? "god roll" : r === 1 ? "semi-god roll" : "nothing";
+const DV_ORDER = {upgrade: 0, new: 1, duplicate: 2, dismantle: 3};
+const DV_LABEL = {upgrade: "Upgrade", new: "New", duplicate: "Duplicate", dismantle: "Dismantle"};
+function dropVerdict(d, L){
+  const mine = {pve: DV_RANK(gradeIn(d.c, L.pve)), pvp: DV_RANK(gradeIn(d.c, L.pvp))};
+  const w = L.pve || L.pvp, rc = reportCard(w), fresh = newDropIds(), best = {pve: 0, pvp: 0};
+  // copies held before these drops, plus other new drops of this weapon that are better (or as good and earlier)
+  const sum = r => r.pve * 3 + r.pvp * 3 + Math.max(r.pve, r.pvp);
+  const rival = DROPS.list.filter(o => o !== d && o.k === d.k).map(o => ({o, r: {pve: DV_RANK(gradeIn(o.c, L.pve)), pvp: DV_RANK(gradeIn(o.c, L.pvp))}}))
+    .filter(x => sum(x.r) > sum(mine) || (sum(x.r) === sum(mine) && x.o.at < d.at));
+  let had = 0;
+  rc.cards.all.list.forEach(x => { if(!x.c || !fresh.has(x.c.cid)) had++; });
+  ["pve", "pvp"].forEach(m => {
+    rc.cards[m].list.forEach(x => { if(!x.c || !fresh.has(x.c.cid)) best[m] = Math.max(best[m], DV_RANK(x.g)); });
+    rival.forEach(x => best[m] = Math.max(best[m], x.r[m]));
+  });
+  const before = had + rival.length;
+  const keeps = ["pve", "pvp"].filter(m => mine[m]);
+  if(!keeps.length) return {v: "dismantle", mine, best, why: before ? `Not a keeper in PvE or PvP. You have ${plural(before, "other copy", "other copies")}` : "Not a god or semi-god roll in PvE or PvP"};
+  const gains = keeps.filter(m => mine[m] > best[m]);
+  const have = keeps.map(m => `${RC_NAME[m]} ${DV_WORD(mine[m])}`).join(" and ");
+  if(!before) return {v: "new", mine, best, why: `Your first copy: ${have}`};
+  if(gains.length) return {v: "upgrade", mine, best, why: gains.map(m => `${RC_NAME[m]} ${DV_WORD(mine[m])} (you had ${best[m] ? "a " + DV_WORD(best[m]) : "none"})`).join(" · ")};
+  return {v: "duplicate", mine, best, why: `You already have ${keeps.map(m => `a ${RC_NAME[m]} ${DV_WORD(best[m])}`).join(" and ")}`};
+}
+function powChip(c){
+  return c && c.pl ? `<span class="rc-pow" role="img" aria-label="Light level ${c.pl}" data-tip="Light level ${c.pl}"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .6 7.4 4.6 11.4 6 7.4 7.4 6 11.4 4.6 7.4.6 6 4.6 4.6Z"/></svg>${c.pl}</span>` : "";
+}
 function dropCard(d){
   const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}, w = L[MODE] || L.pve || L.pvp;
   if(!w) return "";
-  const keep = x => x === "god" || x === "semi";
-  const ci = copyIcons(d.c, L), g = ci.g, trash = ci.trash, others = vaultOthers(w, newDropIds());
-  const verdict = trash ? `<span class="rc-tag g-none">Safe to dismantle</span>`
-    : ["pve", "pvp"].filter(m => keep(g[m])).map(m => `<span class="rc-tag g-${g[m]}">${RC_NAME[m]} ${TAG[g[m]]}</span>${repeatNote(m, g[m], others)}`).join(`<span class="dim">·</span>`);
-  const gm = g[MODE] === "na" ? "none" : keep(g[MODE]) ? g[MODE] : "none";
+  const vd = d._v || dropVerdict(d, L), open = !!(S.dmore && S.dmore[d.c.cid]);
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
-  const best = trash ? "trash" : g.pve === "god" || g.pvp === "god" ? "god" : "semi";
   const dm = copyMode(d.c, bestMode(d.c, L, L[MODE] ? MODE : L.pve ? "pve" : "pvp"), L);
-  // the tier follows the PvE roll / PvP roll pill too, so the card shows that sheet's tier and rank (Joe, 2026-11-03)
   const tw = L[dm] || w, dropTier = tierCell(tw.tier, tw.rank).replace('<div class="tier-cell"', `<div class="tier-cell" title="${RC_NAME[dm]} tier: ${esc(tw.tier)}${tw.rank != null ? ` #${tw.rank}` : ""}"`);
-  return `<article class="drop v-${best}">
-    <div class="drop-top">${thumb(w, false, gm === "none" ? "" : gm)}<div class="drop-name"><span class="drop-nl"><span class="wname">${esc(w.name)}</span>${dropOwnBox(w, d.c)}</span>
+  const top = Math.max(vd.mine.pve, vd.mine.pvp), border = vd.v === "dismantle" ? "trash" : top === 2 ? "god" : "semi";
+  const modes = ["pve", "pvp"].filter(m => L[m]).map(m => `<span class="dv-m r${vd.mine[m]}"><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span>${RC_NAME[m]} ${vd.mine[m] === 2 ? "God" : vd.mine[m] === 1 ? "Semi" : "No"}</span>`).join("");
+  return `<article class="drop dv-${vd.v}">
+    <div class="drop-top">${thumb(w, false, border)}<div class="drop-name"><span class="wname">${esc(w.name)}</span>
       <div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · dropped ${time}</div></div>
-      <div class="drop-where">${ci.html}${locChip(d.c)}</div>${dropTier}</div>
-    <div class="drop-verdict">${keyPills(dm, d.c.cid, L)}</div>
-    ${copyGrid(w, d.c, L, dm)}
-    ${S.rc[w.id] === "all" ? rcPanel(w) : ""}
+      <div class="dv"><span class="dv-label">${DV_LABEL[vd.v]}</span><span class="dv-why">${esc(vd.why)}</span><span class="dv-modes">${modes}</span></div>
+      <div class="drop-where">${powChip(d.c)}${locChip(d.c)}</div>${dropTier}
+      <button type="button" class="dv-more" data-act="drop-more" data-id="${esc(d.c.cid)}" aria-expanded="${open}">${open ? "Hide" : "Details"}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    ${open ? `<div class="drop-verdict">${keyPills(dm, d.c.cid, L)}</div>${copyGrid(w, d.c, L, dm)}${dropOwnBox(w, d.c)}${S.rc[w.id] === "all" ? rcPanel(w) : ""}` : ""}
   </article>`;
 }
 function dropsView(){
@@ -2033,7 +2095,14 @@ function dropsView(){
     : BUNGIE ? "Sign in with Bungie (top right) to see your new drops here" : "Connect your Bungie account to see new drops here (coming soon)";
   const head = `<div class="drops-head"><div><h2 class="drops-title">New Drops</h2><p class="drops-sub">${sub}</p></div><button type="button" class="btn" data-act="bsync">Sync now</button></div>`;
   if(!DROPS.list.length) return head + `<div class="empty-state"><strong>No new drops</strong><span>Nothing new since you last opened this tab. Finish an activity and press Sync, or wait for the automatic sync.</span></div>`;
-  return head + `<div class="drops">${DROPS.list.slice().reverse().map(dropCard).join("")}</div>`;
+  // upgrades first, then new, duplicates, and copies to dismantle; newest first inside each (Joe, 2026-11-12)
+  const rows = DROPS.list.map(d => { const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}; d._v = (L.pve || L.pvp) ? dropVerdict(d, L) : null; return d; }).filter(d => d._v);
+  rows.sort((a, b) => DV_ORDER[a._v.v] - DV_ORDER[b._v.v] || b.at - a.at);
+  const n = {}; rows.forEach(d => n[d._v.v] = (n[d._v.v] || 0) + 1);
+  const tally = Object.keys(DV_ORDER).filter(k => n[k]).map(k => `<span class="dv-t dv-${k}"><i></i>${n[k]} ${k === "new" ? "new" : k === "dismantle" ? "to dismantle" : k === "upgrade" ? (n[k] === 1 ? "upgrade" : "upgrades") : (n[k] === 1 ? "duplicate" : "duplicates")}</span>`).join("");
+  const html = head + `<div class="dv-tally">${tally}</div><div class="drops">${rows.map(dropCard).join("")}</div>`;
+  rows.forEach(d => delete d._v);
+  return html;
 }
 function ico(kind, id, label, cls){
   const src = id ? iconURL(kind, id) : "";
@@ -2693,6 +2762,7 @@ document.addEventListener("click", e => {
     case "ped-save": edSave(); return;
     case "ed-update": edUpdateModal(); return;
     case "ed-send": edSend(); return;
+    case "drop-more": S.dmore = S.dmore || {}; S.dmore[id] = !S.dmore[id]; render(); return;
     case "noop": return;
     case "overlay": case "modal-close": closeModal(); return;
     case "nav": {
