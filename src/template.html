@@ -955,7 +955,19 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .dv-t i{width:10px;height:10px;border-radius:2px;display:inline-block}
 .dv-t.dv-upgrade i{background:var(--god)}.dv-t.dv-new i{background:#5aa9ff}.dv-t.dv-duplicate i{background:var(--line-2)}.dv-t.dv-dismantle i{background:#ef8a7e}
 .drop .own-drop{justify-self:start}
-.dv-row{display:grid;grid-template-columns:60px 230px minmax(300px,1fr) 230px 64px 64px 78px 96px;align-items:center;gap:12px 18px}
+.dv-row{display:grid;grid-template-columns:60px minmax(170px,1fr) 128px 300px minmax(210px,1.1fr) 64px 64px 78px 96px;align-items:center;gap:12px 18px}
+.dv-icons{min-width:0;overflow:hidden}
+.dv-label{justify-self:start;text-align:center;min-width:118px;cursor:default}
+.dv-icons{display:flex;align-items:center;gap:18px}
+.dv-g{display:inline-flex;align-items:center;gap:6px}
+.dv-g i{font:500 9.5px var(--font-mono);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-right:2px}
+.dv-have{padding-left:16px;border-left:1px solid var(--line)}
+.dv-b{width:28px;height:28px;display:grid;place-items:center;border-radius:3px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--faint);opacity:.55}
+.dv-b .rc-ico{width:16px;height:16px}
+.dv-b.r2{color:var(--god);border-color:color-mix(in srgb,var(--god) 60%,transparent);background:color-mix(in srgb,var(--god) 12%,transparent);opacity:1}
+.dv-b.r1{color:var(--semi);border-color:color-mix(in srgb,var(--semi) 60%,transparent);background:color-mix(in srgb,var(--semi) 10%,transparent);opacity:1}
+.dv-b.up{box-shadow:0 0 0 2px color-mix(in srgb,var(--god) 35%,transparent),0 0 10px rgba(63,220,134,.45)}
+.dv-out{display:inline-flex;align-items:center;gap:3px;color:#ef8a7e;font:600 12px var(--font-mono);margin-left:4px}.dv-out svg{width:15px;height:15px}
 .dv-row .thumb{width:60px;height:60px}
 .dv-name{min-width:0}.dv-name .wname{font-size:17px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dv{gap:6px}.dv-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px}
@@ -975,8 +987,8 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .dv-p.hit-god{color:var(--god)}.dv-p.hit-semi{color:var(--semi)}
 .dv-pow,.dv-loc,.dv-tier{display:flex;justify-content:center;align-items:center}
 .dv-row .dv-more{justify-self:end}
-@media (max-width:1250px){.dv-row{grid-template-columns:60px minmax(0,1fr) 64px 64px 78px;}.dv-row .dv{grid-column:2 / -1}.dv-row .dv-perks{grid-column:2 / -1;grid-template-columns:1fr 1fr}.dv-row .dv-more{grid-column:2 / -1;justify-self:start}}
-@media (max-width:700px){.dv-row{grid-template-columns:52px minmax(0,1fr) auto}.dv-row .thumb{width:52px;height:52px}.dv-row .dv-pow,.dv-row .dv-loc{display:none}.dv-row .dv,.dv-row .dv-perks,.dv-row .dv-more{grid-column:1 / -1}}
+@media (max-width:1250px){.dv-row{grid-template-columns:60px minmax(0,1fr) 128px 64px 64px 78px}.dv-row .dv-icons,.dv-row .dv-perks{grid-column:2 / -1}.dv-row .dv-perks{grid-template-columns:1fr 1fr}.dv-row .dv-more{grid-column:2 / -1;justify-self:start}}
+@media (max-width:700px){.dv-row{grid-template-columns:52px minmax(0,1fr) auto}.dv-row .thumb{width:52px;height:52px}.dv-row .dv-pow,.dv-row .dv-loc{display:none}.dv-row .dv-icons,.dv-row .dv-perks,.dv-row .dv-more{grid-column:1 / -1}}
 @media (max-width:700px){.dv{flex-basis:100%;order:3}.dv-more{order:4}}
 </style>
 
@@ -2110,10 +2122,15 @@ function dropCard(d){
   const top = Math.max(vd.mine.pve, vd.mine.pvp), border = vd.v === "dismantle" ? "trash" : top === 2 ? "god" : "semi";
   const G = r => r === 2 ? "God" : r === 1 ? "Semi" : "None";
   // you had -> this drop, for each mode the weapon is on a sheet
-  const cmp = ["pve", "pvp"].filter(m => L[m]).map(m => { const a = vd.best[m], b = vd.mine[m], up = b > a;
-    return `<span class="dv-c ${up ? "up" : ""}"><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span><b>${RC_NAME[m]}</b><span class="r${a}">${G(a)}</span><span class="dv-arrow" aria-label="to">&rarr;</span><span class="r${b}">${G(b)}</span></span>`; }).join("");
+  const badge = (m, r, up) => `<span class="dv-b r${r} ${up ? "up" : ""}" title="${RC_NAME[m]}: ${r === 2 ? "god roll" : r === 1 ? "semi-god roll" : "not a keeper"}"><span class="rc-ico" style="--src:url('${iconURL("n", "m" + m)}')" aria-hidden="true"></span></span>`;
+  const ms = ["pve", "pvp"].filter(m => L[m]);
+  const dropB = ms.map(m => badge(m, vd.mine[m], vd.mine[m] > vd.best[m])).join(""), haveB = ms.map(m => badge(m, vd.best[m])).join("");
   // the roll: this copy's Perk 1 and Perk 2, lit for the mode it's best in
-  const perk = f => { const n = opts(d.c[f])[0]; if(!n) return ""; const h = partHit(f, n, L[dm]); const ic = PART_ICON[n] ? iconURL("t", PART_ICON[n]) : "";
+  const perk = f => {
+    const os = opts(d.c[f]); if(!os.length) return "";
+    const rank = n => { const h = partHit(f, n, L[dm]); return h === "god" ? 0 : h === "semi" ? 1 : 2; };
+    const n = os.slice().sort((a, b) => rank(a) - rank(b))[0];          // the highest pick for this roll (Joe, 2026-11-12)
+    const h = partHit(f, n, L[dm]); const ic = PART_ICON[n] ? iconURL("t", PART_ICON[n]) : "";
     return `<span class="dv-p ${h ? "hit-" + h : ""}" title="${f === "p1" ? "Perk 1" : "Perk 2"}: ${esc(n)}">${ic ? `<img src="${ic}" alt="">` : ""}<span>${esc(n)}</span></span>`; };
   const where = c => c ? (LOCS[c.loc || "vault"] || "") : "";
   const tip = vd.v === "upgrade" && vd.outclassed.length ? `Keep this one. ${plural(vd.outclassed.length, "older copy", "older copies")}${vd.outclassed.length === 1 && where(vd.outclassed[0]) ? ` (${where(vd.outclassed[0])})` : ""} can go`
@@ -2121,9 +2138,9 @@ function dropCard(d){
     : "";                                   // only when there's an older copy to act on
   return `<article class="drop dv-${vd.v}">
     <div class="dv-row">${thumb(w, false, border)}
-      <div class="dv-name"><span class="wname">${esc(w.name)}</span><div class="wsub">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""} · ${time}</div></div>
-      <div class="dv"><div class="dv-head"><span class="dv-label">${DV_LABEL[vd.v]}</span><span class="dv-why">${esc(vd.why)}</span></div>
-        <div class="dv-cmp">${cmp}</div>${tip ? `<div class="dv-tip">${esc(tip)}</div>` : ""}</div>
+      <div class="dv-name"><span class="wname">${esc(w.name)}</span><div class="wsub" title="Dropped ${time}">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""}</div></div>
+      <span class="dv-label" title="${esc(vd.why + (tip ? ". " + tip : ""))}">${DV_LABEL[vd.v]}</span>
+      <div class="dv-icons" title="${esc(vd.why + (tip ? ". " + tip : ""))}"><span class="dv-g"><i>Drop</i>${dropB}</span><span class="dv-g dv-have"><i>Yours</i>${haveB}${vd.outclassed && vd.outclassed.length && vd.v === "upgrade" ? `<span class="dv-out" title="${esc(tip)}">${I.trash}<b>${vd.outclassed.length}</b></span>` : ""}</span></div>
       <div class="dv-perks">${perk("p1")}${perk("p2")}</div>
       <div class="dv-pow">${powChip(d.c)}</div><div class="dv-loc">${locChip(d.c)}</div><div class="dv-tier">${dropTier}</div>
       <button type="button" class="dv-more" data-act="drop-more" data-id="${esc(d.c.cid)}" aria-expanded="${open}">${open ? "Hide" : "Details"}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
