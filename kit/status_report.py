@@ -57,6 +57,10 @@ def detail(k):
         v = find(k, r"(\d+) changes on (\d+) weapons", lambda m: f"Cross check: {m.group(1)} fixes on {m.group(2)} weapons (spellings, columns, perks that can't roll)")
         if v: d.append(v)
         if find(k, r"All cross check rules hold"): d.append("All cross check rules hold")
+        v = find(k, r"PvP weapons lined up with Aegis's sheet: (\d+) matched", lambda m: f"{m.group(1)} PvP weapons lined up with Aegis's sections, energy and frames")
+        if v: d.append(v)
+        v = find(k, r"Moved to Aegis's section: (.*)", lambda m: "moved: " + m.group(1))
+        if v: d.append(v)
     elif k == "hashes":
         v = find(k, r"covering (\d+)/(\d+) sheet weapons", lambda m: f"{m.group(1)} of {m.group(2)} weapons found on Bungie")
         if v: d.append(v)

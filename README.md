@@ -50,6 +50,8 @@ Pride's PvP sheet is the baseline, and `kit/crosscheck.py` checks it against thr
 3. **TTK numbers in the notes** are rewritten to Hugo's numbers where they differ.
 4. **Weapon names** Pride misspelled take Bungie's spelling, so the player data and Bungie's item hashes find them.
 
+After the cross check, `kit/align.py` lines every PvP weapon up with Aegis's sheet: it takes Aegis's section, ammo type, energy, frame, season and source (Aegis's sheet is the basis). Weapons with the same name in two sections, like the two High Albedos, are told apart by frame, there and in the account matching. PvP weapons Aegis doesn't list keep Pride's details and are named in the report.
+
 Every change is listed in the run summary; the weapon's details panel shows only its finished TTK. The step stops the deploy if a rule still breaks after fixing, if its TTK math stops matching Hugo's own chart, or if its audit stops catching a rule it breaks on purpose. The job rebuilds every Wednesday whether or not the sheets changed, so a change to Hugo's chart or the Compendium alone still updates the PvP perks, tiers and TTK numbers that week. `kit/hugo_fetch.py` downloads Hugo's chart and the Compendium, falling back to the saved copy in `assets/hugo_cache.json` if either is unreachable.
 
 ### PvP ranking from players

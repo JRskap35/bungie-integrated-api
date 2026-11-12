@@ -21,8 +21,19 @@ key = lambda arch, name: arch + "|" + nn(name)
 
 # the page's weapon keys, by name (one name can sit in two sections only in rare cases; both are kept)
 wanted = collections.defaultdict(set)
+FRAME = {}                                   # sheet frames per weapon key, to tell same named weapons apart
+def fnorm(s):
+    s = re.sub(r"\s*\(.*?\)", "", s or "").strip()
+    s = re.sub(r"\s*(frame|glaive|sword frame|sword|heat weapon|weapon)$", "", s, flags=re.I)
+    return re.sub(r"[^a-z0-9]", "", s.lower()).replace("rapidfire", "rapid")
+def item_frame(it):
+    for se in it.get("sockets", {}).get("socketEntries", []):
+        p = items.get(str(se.get("singleInitialItemHash")))
+        if p and (p.get("plug") or {}).get("plugCategoryIdentifier") == "intrinsics": return fnorm(p["displayProperties"]["name"])
+    return None
 for w in d["weapons"] + (d.get("pvp") or {}).get("weapons", []):
     wanted[nn(w["name"])].add(key(w["arch"], w["name"]))
+    FRAME.setdefault(key(w["arch"], w["name"]), set()).add(fnorm(w.get("frame")))
 
 BARREL = {"barrels", "tubes", "bowstrings", "blades", "hafts", "scopes", "v950.new.sword0.blades"}
 MAG = {"magazines", "magazines_gl", "arrows", "batteries", "guards", "v950.new.sword0.guards"}
@@ -45,6 +56,8 @@ for h, it in items.items():
     # copies count as the base weapon (Joe, 2026-11-11)
     keys = wanted.get(nn(n)) or wanted.get(nn(base_name(n)))
     if not keys: continue
+    if len(keys) > 1:                        # same name in two sections (High Albedo): the one whose frame matches
+        fr = item_frame(it); keys = {k for k in keys if fr in FRAME.get(k, ())} or keys
     W[h] = sorted(keys)[0] if len(keys) == 1 else sorted(keys)
     for se in it.get("sockets", {}).get("socketEntries", []):
         hs = [se.get("singleInitialItemHash")] + [x["plugItemHash"] for x in se.get("reusablePlugItems", [])]

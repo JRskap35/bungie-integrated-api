@@ -44,6 +44,8 @@ python3 -I kit/pvp.py build/data_e.json build/pvp_raw.json build/data_ep.json
 # TTK numbers), then audit them; stops the build if a rule still breaks
 python3 -I kit/crosscheck.py build/data_ep.json build/hugo.json "$CACHE" build/data_epx.json build/crosscheck.txt
 { echo '## PvP cross check'; echo '```'; cat build/crosscheck.txt; echo '```'; } >> "$SUMMARY" || true
+# PvP weapons take Aegis's section, ammo type, energy, frame, season and source (Aegis's sheet is the basis)
+python3 -I kit/align.py build/data_epx.json build/data_epx.json build/align.txt
 
 # ---------- 4. Bungie item and perk hashes for every weapon on both sheets (built once) ----------
 step hashes

@@ -22,11 +22,27 @@ Explosive Payload, Timed Payload, Precision Instrument). The top three stay. Bar
 Pride's picks, ordered by what players run, and add the players' favourite when at least a quarter of copies use it."""
 import json, re, sys, collections, statistics
 DATA, PRIDE, USAGE, PERKS, WISH, HASHES, OUT, REPORT = sys.argv[1:9]
-d = json.load(open(DATA)); pr = json.load(open(PRIDE)); U = json.load(open(USAGE)); PK = json.load(open(PERKS)); H = json.load(open(HASHES))
+d = json.load(open(DATA)); pr = json.load(open(PRIDE)); U = json.load(open(USAGE)); PK = json.load(open(PERKS))
+# a weapon moved to Aegis's section (align.py, 2026-11-11) has older weeks stored under its old section: read those
+# under the new key too, so its player data carries over (only when the name is unique among the sheet's weapons)
+def rekey(store):
+    names = collections.Counter(k.split("|", 1)[1] for k in [key(w) for w in d["pvp"]["weapons"]])
+    want = {key(w).split("|", 1)[1]: key(w) for w in d["pvp"]["weapons"] if names[key(w).split("|", 1)[1]] == 1}
+    out = {}
+    for k, v in store.items():
+        nk = want.get(k.split("|", 1)[-1], k) if k not in want.values() else k
+        if nk in out and isinstance(v, dict) and isinstance(out[nk], dict):      # both old and new key present: add up
+            for f, x in v.items():
+                if isinstance(x, dict): out[nk][f] = {g: out[nk].get(f, {}).get(g, 0) + y for g, y in x.items()} | {g: y for g, y in out[nk].get(f, {}).items() if g not in x}
+                elif isinstance(x, (int, float)): out[nk][f] = out[nk].get(f, 0) + x
+        else: out[nk] = v
+    return out
+H = json.load(open(HASHES))
 nn = lambda s: re.sub(r"[^a-z0-9]", "", (s or "").lower().replace("’", "'"))
 pname = lambda x: x[0] if isinstance(x, list) else x
 live = lambda a: [x for x in (a or []) if not isinstance(x, list)]
 key = lambda w: w["arch"] + "|" + nn(w["name"])
+U["S"] = rekey(U["S"]); PK = rekey(PK)
 TIERS = "SABCDEF"; CAP = {"p1": 3, "p2": 3, "barrel": 2, "mag": 2}
 DUEL = {"headseeker", "openingshot", "explosivepayload", "timedpayload", "precisioninstrument"}
 CUTS = [(.10, "S"), (.25, "A"), (.45, "B"), (.70, "C"), (1.01, "D")]
