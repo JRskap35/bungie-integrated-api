@@ -1008,7 +1008,30 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .dv-pow,.dv-loc,.dv-tier{display:flex;justify-content:center;align-items:center}
 .dv-row .dv-more{justify-self:end}
 @media (max-width:1250px){.dv-row{grid-template-columns:60px minmax(0,1fr) 128px 64px 64px 78px}.dv-row .dv-icons,.dv-row .dv-perks{grid-column:2 / -1}.dv-row .dv-perks{grid-template-columns:1fr 1fr}.dv-row .dv-more{grid-column:2 / -1;justify-self:start}}
-@media (max-width:700px){.dv-row{grid-template-columns:52px minmax(0,1fr) auto}.dv-row .thumb{width:52px;height:52px}.dv-row .dv-pow,.dv-row .dv-loc{display:none}.dv-row .dv-icons,.dv-row .dv-perks,.dv-row .dv-more{grid-column:1 / -1}}
+/* phone (Joe, 2026-11-12): picture, name and tier; then the label beside This drop / You have; then the two perks side
+   by side; then light level, location and Details */
+@media (max-width:700px){
+  .dv-row{grid-template-columns:52px minmax(0,1fr) auto;grid-template-areas:"thumb name tier" "label icons icons" "perks perks perks" "pow loc more";gap:10px 10px}
+  .dv-row > .thumb{grid-area:thumb;width:52px;height:52px}
+  .dv-row .dv-name{grid-area:name}.dv-row .dv-name .wname{font-size:15.5px}
+  .dv-row .dv-tier{grid-area:tier}
+  .dv-row > .dv-label{grid-area:label;min-width:0;font-size:12px;letter-spacing:.12em;padding:6px 8px 5px;align-self:center}
+  .dv-row .dv-icons{grid-area:icons;justify-self:end;gap:6px;overflow:visible}
+  .dv-row .dv-g{padding:4px 6px 5px;gap:4px}.dv-row .dv-g i{font-size:8.5px;letter-spacing:.12em}
+  .dv-row .dv-b{width:24px;height:24px}.dv-row .dv-b .rc-ico{width:14px;height:14px}
+  .dv-row .dv-vs{font-size:9px}
+  .dv-row .dv-perks{grid-area:perks;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .dv-row .dv-p{font-size:13px}.dv-row .dv-p img{width:20px;height:20px}
+  .dv-row .dv-pow{grid-area:pow;display:flex;justify-content:flex-start}
+  .dv-row .dv-loc{grid-area:loc;display:flex;justify-content:flex-start}
+  .dv-row .dv-loc .loc-tile{width:44px;height:44px}.dv-row .dv-loc .loc-tile .loc-img{width:38px;height:38px}.dv-row .dv-loc .loc-tile .loc-cls{width:28px;height:28px}
+  .dv-row .dv-more{grid-area:more;justify-self:end}
+  .dv-list{padding-left:28px}.dv-count{left:-29px;width:29px;height:52px;top:12px}.dv-count b{font-size:17px}.dv-count i{font-size:7px;letter-spacing:.06em}
+  .drop{padding:10px}
+  .dv-tally{gap:6px 14px;font-size:12.5px}
+  .dv-copy-h{gap:8px 10px}.dv-copy-h .rkeys{width:100%}
+  .dv-copy-h .loc-tile{width:40px;height:40px}.dv-copy-h .loc-tile .loc-img{width:34px;height:34px}.dv-copy-h .loc-tile .loc-cls{width:26px;height:26px}.dv-copy-h .dv-cn{font-size:10px}
+}
 @media (max-width:700px){.dv{flex-basis:100%;order:3}.dv-more{order:4}}
 </style>
 
