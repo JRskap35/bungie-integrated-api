@@ -40,7 +40,10 @@ def kind(p):
 W, P = {}, {}
 for h, it in items.items():
     if it.get("itemType") != 3: continue
-    keys = wanted.get(nn(base_name(it.get("displayProperties", {}).get("name"))))
+    n = it.get("displayProperties", {}).get("name")
+    # an exact sheet name wins ("Drang (Baroque)" has its own row); otherwise Adept, Harrowed, Timelost and Baroque
+    # copies count as the base weapon (Joe, 2026-11-11)
+    keys = wanted.get(nn(n)) or wanted.get(nn(base_name(n)))
     if not keys: continue
     W[h] = sorted(keys)[0] if len(keys) == 1 else sorted(keys)
     for se in it.get("sockets", {}).get("socketEntries", []):

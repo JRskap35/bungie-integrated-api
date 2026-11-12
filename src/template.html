@@ -1610,8 +1610,10 @@ async function bProfile(){
   const out = {};
   for(const [it, loc, cid, equipped] of all){
     if(!loc || !it.itemInstanceId) continue;
-    let k = HASH.w[it.itemHash]; if(!k) continue;
-    if(Array.isArray(k)) k = k[0];
+    // a weapon Aegis lists in two sections (Submersion under Bows and Other, High Albedo under Sidearms and Rocket
+    // Sidearms) maps to both: the copy counts in each (Joe, 2026-11-11; it used to go to the first section only)
+    let keys = HASH.w[it.itemHash]; if(!keys) continue;
+    if(!Array.isArray(keys)) keys = [keys];
     const sk = (sockets[it.itemInstanceId] || {}).sockets || [], rp = (reus[it.itemInstanceId] || {}).plugs || {};
     const c = {cid: it.itemInstanceId, itemHash: it.itemHash, loc, charId: cid, equipped, barrel: [], mag: [], p1: [], p2: [], origin: [], mw: ""};
     const pw = ((insts[it.itemInstanceId] || {}).primaryStat || {}).value; if(pw) c.pl = pw;   // the copy's light (power) level
@@ -1628,7 +1630,7 @@ async function bProfile(){
       else if(kd === "origin") c.origin = names;
       else if(kd === "mw") c.mw = mwClean(cur[0]);
     });
-    (out[k] = out[k] || []).push(c);
+    keys.forEach(k => (out[k] = out[k] || []).push(c));
   }
   return out;
 }
