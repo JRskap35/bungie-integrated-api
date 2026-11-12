@@ -37,6 +37,8 @@ A GitHub Actions job (`.github/workflows/deploy.yml`) runs every Wednesday eveni
 6. **Bungie's official icons** (`kit/bungie.py`); new weapons Aegis adds get them on the same run, and anything Bungie doesn't have yet keeps the sheet's icon.
 7. **The page** is put together, and the run summary lists what changed since the live version: new weapons, removals, tier moves and perk changes on Aegis's sheet, and on the PvP side Pride's tier changes plus what moved on the site after the player ranking.
 
+After every run, `kit/status_report.py` writes the **update report**: a checklist with a check or an X for each step above and for publishing, what changed since the live version, and any warnings or errors. It is on the run's summary page, and the Wednesday (and **Run workflow**) runs also file it as an issue labelled `weekly-update` in the Issues tab: closed straight away when everything went well, left open and assigned to the repo owner when something needs a look. Runs after a code push only file an issue when they fail.
+
 The workflow then publishes to Cloudflare Pages. The progress sync worker is redeployed only when its code or settings changed, and the old GitHub address only gets a new upload when its forwarding page changes (or, if the Cloudflare publish failed, the full site goes there instead).
 
 ### PvP cross check

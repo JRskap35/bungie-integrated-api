@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write     # the perk editor build is kept on the perk-editor-build branch
+  issues: write       # each Wednesday update files its report as an issue
   pages: write
   id-token: write
 
@@ -40,15 +41,18 @@ jobs:
           key: bungie-${{ github.run_id }}
           restore-keys: bungie-
       - name: Deploy progress sync (Cloudflare Worker)
+        id: worker
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true
         run: bash cloud/deploy.sh
       - name: Rebuild from TheAegisRelic's and Pride Eternal's sheets and Bungie's API
+        id: build
         env:
           SITE_URL: https://endgameapi.pages.dev/
-        run: bash kit/build.sh
+        run: mkdir -p build && bash kit/build.sh 2>&1 | tee build/build.log
       # the perk editor's UPDATE task republishes this page in Claude; it reads it through git (one commit, replaced each run)
       - name: Keep the perk editor build on the perk-editor-build branch
+        id: editor_branch
         continue-on-error: true
         run: |
           cd build/editor
@@ -60,10 +64,12 @@ jobs:
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" perk-editor-build
           echo "Perk editor build saved for ${GITHUB_SHA::7}"
       - name: Publish to Cloudflare Pages (endgameapi.pages.dev)
+        id: publish
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
         continue-on-error: true
         run: bash cloud/deploy_pages.sh
       - name: Forward the old GitHub address to endgameapi.pages.dev
+        id: redirect
         run: bash cloud/github_redirect.sh
       # GitHub Pages only needs a new upload when its page changes: the forwarding page is the same every week, and the
       # full site goes there only if the Cloudflare publish failed (then the pages differ and it is uploaded)
@@ -81,6 +87,35 @@ jobs:
         if: steps.ghcheck.outputs.changed == 'true'
         with:
           path: build/ghsite
+      # the update report (kit/status_report.py): a checklist of every step, what changed and any problems. It goes on
+      # this run's summary page, and the Wednesday and on demand runs also file it as an issue labelled weekly-update:
+      # closed straight away when all is well, left open and assigned to the owner when something needs a look. Runs
+      # after a code push only file one when they fail.
+      - name: Write the update report
+        if: always()
+        env:
+          WORKER: ${{ steps.worker.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          EDITOR_BRANCH: ${{ steps.editor_branch.outcome }}
+          PUBLISH: ${{ steps.publish.outcome }}
+          REDIRECT: ${{ steps.redirect.outcome }}
+          EVENT: ${{ github.event_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+          OWNER: ${{ github.repository_owner }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -I kit/status_report.py build/status.md build/status.json
+          cat build/status.md >> "$GITHUB_STEP_SUMMARY"
+          state=$(jq -r .state build/status.json); title=$(jq -r .title build/status.json)
+          if [ "$EVENT" != "push" ] || [ "$state" = "fail" ]; then
+            gh label create weekly-update --color 1F6FEB --description "Report from the Wednesday update" >/dev/null 2>&1 || true
+            args=(--title "$title" --body-file build/status.md --label weekly-update)
+            if [ "$state" != "ok" ]; then args+=(--assignee "$OWNER"); fi
+            url=$(gh issue create "${args[@]}")
+            echo "Report filed: $url"
+            if [ "$state" = "ok" ]; then gh issue close "$url" --reason completed >/dev/null; fi
+          fi
 
   deploy:
     needs: build
