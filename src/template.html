@@ -955,13 +955,33 @@ tr.detail td{background:color-mix(in srgb,var(--mode) 7%,transparent)}
 .dv-t i{width:10px;height:10px;border-radius:2px;display:inline-block}
 .dv-t.dv-upgrade i{background:var(--god)}.dv-t.dv-new i{background:#5aa9ff}.dv-t.dv-duplicate i{background:var(--line-2)}.dv-t.dv-dismantle i{background:#ef8a7e}
 .drop .own-drop{justify-self:start}
-.dv-row{display:grid;grid-template-columns:60px minmax(170px,1fr) 128px 300px minmax(210px,1.1fr) 64px 64px 78px 96px;align-items:center;gap:12px 18px}
+.dv-row{display:grid;grid-template-columns:60px minmax(160px,1fr) 128px 290px minmax(200px,1.1fr) 64px 64px 78px 96px;align-items:center;gap:12px 16px}
 .dv-icons{min-width:0;overflow:hidden}
 .dv-label{justify-self:start;text-align:center;min-width:118px;cursor:default}
 .dv-icons{display:flex;align-items:center;gap:18px}
-.dv-g{display:inline-flex;align-items:center;gap:6px}
-.dv-g i{font:500 9.5px var(--font-mono);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-right:2px}
-.dv-have{padding-left:16px;border-left:1px solid var(--line)}
+.dv-icons{gap:8px}
+.dv-g{display:grid;gap:5px;padding:6px 9px 7px;border-radius:4px;border:1px solid var(--line-2);background:rgba(255,255,255,.025)}
+.dv-g i{font:600 9.5px var(--font-mono);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.dv-bs{display:flex;align-items:center;gap:6px}
+.dv-drop{border-color:color-mix(in srgb,var(--dvc,var(--line-2)) 70%,transparent);background:color-mix(in srgb,var(--dvc,transparent) 9%,transparent)}
+.dv-drop i{color:var(--dvc,var(--muted))}
+.dv-have{border-style:dashed}
+.dv-vs{font:600 10px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.drop.dv-upgrade{--dvc:var(--god)}.drop.dv-new{--dvc:#5aa9ff}.drop.dv-duplicate{--dvc:var(--muted)}.drop.dv-dismantle{--dvc:#ef8a7e}
+/* several copies of one weapon: a count tab sticks out of the card's left edge */
+.dv-list{padding-left:40px}
+.drop{position:relative}
+.dv-count{position:absolute;left:-41px;top:14px;width:41px;height:46px;display:grid;place-content:center;justify-items:center;line-height:1;
+  border:1px solid var(--dvc,var(--line-2));border-right:0;border-radius:6px 0 0 6px;background:color-mix(in srgb,var(--dvc,var(--line-2)) 22%,var(--bg))}
+.dv-count b{font:700 20px var(--font-display);color:var(--fg)}
+.dv-count i{font:600 8.5px var(--font-mono);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.dv-copy{display:grid;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.dv-copy-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.dv-label.sm{font-size:11.5px;padding:4px 8px 3px;min-width:0}
+.drop .dv-label.sm.dv-l-upgrade{background:var(--god);border-color:var(--god);color:#06200f}.drop .dv-label.sm.dv-l-new{background:#5aa9ff;border-color:#5aa9ff;color:#04162b}
+.drop .dv-label.sm.dv-l-duplicate{background:none;color:var(--muted);border-color:var(--line-2)}.drop .dv-label.sm.dv-l-dismantle{background:none;color:#ef8a7e;border-color:rgba(239,138,126,.6)}
+.dv-cn{font:500 11px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+@media (max-width:700px){.dv-list{padding-left:30px}.dv-count{left:-31px;width:31px}}
 .dv-b{width:28px;height:28px;display:grid;place-items:center;border-radius:3px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--faint);opacity:.55}
 .dv-b .rc-ico{width:16px;height:16px}
 .dv-b.r2{color:var(--god);border-color:color-mix(in srgb,var(--god) 60%,transparent);background:color-mix(in srgb,var(--god) 12%,transparent);opacity:1}
@@ -2078,44 +2098,46 @@ const DV_RANK = g => g === "god" ? 2 : g === "semi" ? 1 : 0;
 const DV_WORD = r => r === 2 ? "god roll" : r === 1 ? "semi-god roll" : "nothing";
 const DV_ORDER = {upgrade: 0, new: 1, duplicate: 2, dismantle: 3};
 const DV_LABEL = {upgrade: "Upgrade", new: "New", duplicate: "Duplicate", dismantle: "Dismantle"};
-function dropVerdict(d, L){
-  const mine = {pve: DV_RANK(gradeIn(d.c, L.pve)), pvp: DV_RANK(gradeIn(d.c, L.pvp))};
+function dropVerdict(grp, L){
+  // grp: every new copy of one weapon. "This drop" is the best of them in each mode; "You have" is only what the
+  // account held before these drops (Joe, 2026-11-12)
+  grp = Array.isArray(grp) ? grp : [grp];
+  const rOf = c => ({pve: DV_RANK(gradeIn(c, L.pve)), pvp: DV_RANK(gradeIn(c, L.pvp))});
+  const each = grp.map(x => ({x, r: rOf(x.c)}));
+  const mine = {pve: Math.max(...each.map(e => e.r.pve)), pvp: Math.max(...each.map(e => e.r.pvp))};
   const w = L.pve || L.pvp, rc = reportCard(w), fresh = newDropIds(), best = {pve: 0, pvp: 0};
-  // copies held before these drops, plus other new drops of this weapon that are better (or as good and earlier)
-  const sum = r => r.pve * 3 + r.pvp * 3 + Math.max(r.pve, r.pvp);
-  const rival = DROPS.list.filter(o => o !== d && o.k === d.k).map(o => ({o, r: {pve: DV_RANK(gradeIn(o.c, L.pve)), pvp: DV_RANK(gradeIn(o.c, L.pvp))}}))
-    .filter(x => sum(x.r) > sum(mine) || (sum(x.r) === sum(mine) && x.o.at < d.at));
   let had = 0;
   rc.cards.all.list.forEach(x => { if(!x.c || !fresh.has(x.c.cid)) had++; });
-  ["pve", "pvp"].forEach(m => {
-    rc.cards[m].list.forEach(x => { if(!x.c || !fresh.has(x.c.cid)) best[m] = Math.max(best[m], DV_RANK(x.g)); });
-    rival.forEach(x => best[m] = Math.max(best[m], x.r[m]));
-  });
-  const before = had + rival.length;
-  // copies held before: one the drop matches or beats in both modes (and beats in one) can go; one that matches or
-  // beats the drop in both modes makes the drop the one to let go
-  const olds = []; const seen = new Set();
+  ["pve", "pvp"].forEach(m => rc.cards[m].list.forEach(x => { if(!x.c || !fresh.has(x.c.cid)) best[m] = Math.max(best[m], DV_RANK(x.g)); }));
+  // older copies: one the new copies match or beat in both modes (and beat in one) can go; one that matches or beats
+  // them in both modes makes the new ones the ones to let go
+  const olds = [], seen = new Set();
   ["pve", "pvp", "trash"].forEach(m => rc.cards[m].list.forEach(x => { if(x.c && !fresh.has(x.c.cid) && !seen.has(x.c.cid)){ seen.add(x.c.cid); olds.push(x.c); } }));
-  const rOf = c => ({pve: DV_RANK(gradeIn(c, L.pve)), pvp: DV_RANK(gradeIn(c, L.pvp))});
   const beats = (a, b) => a.pve >= b.pve && a.pvp >= b.pvp && (a.pve > b.pve || a.pvp > b.pvp);
-  const outclassed = olds.filter(c => beats(mine, rOf(c)) && (rOf(c).pve || rOf(c).pvp));
+  const outclassed = olds.filter(c => { const r = rOf(c); return beats(mine, r) && (r.pve || r.pvp); });
   const better = olds.find(c => { const r = rOf(c); return r.pve >= mine.pve && r.pvp >= mine.pvp; });
+  // each copy: Keep when it brings the best roll of the batch in a mode and beats what you had; Duplicate when it's a
+  // keeper but another copy (new or old) covers it; Dismantle when it's not a keeper
+  const kept = new Set();
+  ["pve", "pvp"].forEach(m => { if(mine[m] > best[m]){ const e = each.find(e => e.r[m] === mine[m]); if(e) kept.add(e.x); } });
+  const per = new Map(each.map(e => [e.x, !(e.r.pve || e.r.pvp) ? "dismantle" : kept.has(e.x) ? "keep" : "duplicate"]));
   const keeps = ["pve", "pvp"].filter(m => mine[m]);
-  const extra = {outclassed, better};
-  if(!keeps.length) return {v: "dismantle", mine, best, ...extra, why: before ? `Not a keeper in PvE or PvP. You have ${plural(before, "other copy", "other copies")}` : "Not a god or semi-god roll in PvE or PvP"};
+  const base = {mine, best, outclassed, better, per};
+  if(!keeps.length) return {...base, v: "dismantle", why: had ? `Not a keeper in PvE or PvP. You have ${plural(had, "copy", "copies")} already` : "Not a god or semi-god roll in PvE or PvP"};
   const gains = keeps.filter(m => mine[m] > best[m]);
   const have = keeps.map(m => `${RC_NAME[m]} ${DV_WORD(mine[m])}`).join(" and ");
-  if(!before) return {v: "new", mine, best, ...extra, why: `Your first copy: ${have}`};
-  if(gains.length) return {v: "upgrade", mine, best, ...extra, why: gains.map(m => `${RC_NAME[m]} ${DV_WORD(mine[m])} (you had ${best[m] ? "a " + DV_WORD(best[m]) : "none"})`).join(" · ")};
-  return {v: "duplicate", mine, best, ...extra, why: `You already have ${keeps.map(m => `a ${RC_NAME[m]} ${DV_WORD(best[m])}`).join(" and ")}`};
+  if(!had) return {...base, v: "new", why: `Your first copy: ${have}`};
+  if(gains.length) return {...base, v: "upgrade", why: gains.map(m => `${RC_NAME[m]} ${DV_WORD(mine[m])} (you had ${best[m] ? "a " + DV_WORD(best[m]) : "none"})`).join(" · ")};
+  return {...base, v: "duplicate", why: `You already have ${keeps.map(m => `a ${RC_NAME[m]} ${DV_WORD(best[m])}`).join(" and ")}`};
 }
 function powChip(c){
   return c && c.pl ? `<span class="rc-pow" role="img" aria-label="Light level ${c.pl}" data-tip="Light level ${c.pl}"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .6 7.4 4.6 11.4 6 7.4 7.4 6 11.4 4.6 7.4.6 6 4.6 4.6Z"/></svg>${c.pl}</span>` : "";
 }
-function dropCard(d){
+function dropCard(d, grp){
   const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}, w = L[MODE] || L.pve || L.pvp;
   if(!w) return "";
-  const vd = d._v || dropVerdict(d, L), open = !!(S.dmore && S.dmore[d.c.cid]);
+  grp = grp || [d];
+  const vd = dropVerdict(grp, L), open = !!(S.dmore && S.dmore[d.c.cid]);
   const time = new Date(d.at).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
   const dm = copyMode(d.c, bestMode(d.c, L, L[MODE] ? MODE : L.pve ? "pve" : "pvp"), L);
   const tw = L[dm] || w, dropTier = tierCell(tw.tier, tw.rank).replace('<div class="tier-cell"', `<div class="tier-cell" title="${RC_NAME[dm]} tier: ${esc(tw.tier)}${tw.rank != null ? ` #${tw.rank}` : ""}"`);
@@ -2136,15 +2158,19 @@ function dropCard(d){
   const tip = vd.v === "upgrade" && vd.outclassed.length ? `Keep this one. ${plural(vd.outclassed.length, "older copy", "older copies")}${vd.outclassed.length === 1 && where(vd.outclassed[0]) ? ` (${where(vd.outclassed[0])})` : ""} can go`
     : vd.v === "duplicate" && vd.better ? `Your copy${where(vd.better) ? ` in the ${where(vd.better)}` : ""} is as good or better: this one can go`
     : "";                                   // only when there's an older copy to act on
-  return `<article class="drop dv-${vd.v}">
+  // more than one copy of this weapon in the drops: one card, a count tab on its left edge, every copy under Details
+  const copies = grp.length > 1 ? grp.map((x, i) => { const xm = copyMode(x.c, bestMode(x.c, L, L[MODE] ? MODE : L.pve ? "pve" : "pvp"), L);
+    const pv = vd.per.get(x) || "duplicate";
+    return `<div class="dv-copy"><div class="dv-copy-h"><span class="dv-label sm dv-l-${pv === "keep" ? "upgrade" : pv}">${pv === "keep" ? "Keep" : DV_LABEL[pv]}</span><span class="dv-cn">Copy ${i + 1} of ${grp.length}</span>${powChip(x.c)}${locChip(x.c)}${keyPills(xm, x.c.cid, L)}</div>${copyGrid(w, x.c, L, xm)}</div>`; }).join("") : "";
+  return `<article class="drop dv-${vd.v} ${grp.length > 1 ? "dv-multi" : ""}">${grp.length > 1 ? `<span class="dv-count" title="${grp.length} copies dropped" aria-label="${grp.length} copies dropped"><b>${grp.length}</b><i>copies</i></span>` : ""}
     <div class="dv-row">${thumb(w, false, border)}
       <div class="dv-name"><span class="wname">${esc(w.name)}</span><div class="wsub" title="Dropped ${time}">${esc(archName(w.arch))}${w.season ? ` · S${esc(w.season)}` : ""}</div></div>
       <span class="dv-label" title="${esc(vd.why + (tip ? ". " + tip : ""))}">${DV_LABEL[vd.v]}</span>
-      <div class="dv-icons" title="${esc(vd.why + (tip ? ". " + tip : ""))}"><span class="dv-g"><i>Drop</i>${dropB}</span><span class="dv-g dv-have"><i>Yours</i>${haveB}${vd.outclassed && vd.outclassed.length && vd.v === "upgrade" ? `<span class="dv-out" title="${esc(tip)}">${I.trash}<b>${vd.outclassed.length}</b></span>` : ""}</span></div>
+      <div class="dv-icons" title="${esc(vd.why + (tip ? ". " + tip : ""))}"><span class="dv-g dv-drop"><i>${grp.length > 1 ? "Best drop" : "This drop"}</i><span class="dv-bs">${dropB}</span></span><span class="dv-vs" aria-hidden="true">vs</span><span class="dv-g dv-have"><i>You have</i><span class="dv-bs">${haveB}${vd.outclassed && vd.outclassed.length && vd.v === "upgrade" ? `<span class="dv-out" title="${esc(tip)}">${I.trash}<b>${vd.outclassed.length}</b></span>` : ""}</span></span></div>
       <div class="dv-perks">${perk("p1")}${perk("p2")}</div>
       <div class="dv-pow">${powChip(d.c)}</div><div class="dv-loc">${locChip(d.c)}</div><div class="dv-tier">${dropTier}</div>
       <button type="button" class="dv-more" data-act="drop-more" data-id="${esc(d.c.cid)}" aria-expanded="${open}">${open ? "Hide" : "Details"}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
-    ${open ? `<div class="drop-verdict">${keyPills(dm, d.c.cid, L)}</div>${copyGrid(w, d.c, L, dm)}${dropOwnBox(w, d.c)}${S.rc[w.id] === "all" ? rcPanel(w) : ""}` : ""}
+    ${open ? (grp.length > 1 ? copies : `<div class="drop-verdict">${keyPills(dm, d.c.cid, L)}</div>${copyGrid(w, d.c, L, dm)}`) + `${dropOwnBox(w, d.c)}${S.rc[w.id] === "all" ? rcPanel(w) : ""}` : ""}
   </article>`;
 }
 function dropsView(){
@@ -2155,12 +2181,19 @@ function dropsView(){
   const head = `<div class="drops-head"><div><h2 class="drops-title">New Drops</h2><p class="drops-sub">${sub}</p></div><button type="button" class="btn" data-act="bsync">Sync now</button></div>`;
   if(!DROPS.list.length) return head + `<div class="empty-state"><strong>No new drops</strong><span>Nothing new since you last opened this tab. Finish an activity and press Sync, or wait for the automatic sync.</span></div>`;
   // upgrades first, then new, duplicates, and copies to dismantle; newest first inside each (Joe, 2026-11-12)
-  const rows = DROPS.list.map(d => { const L = {pve: TWIN.pve[d.k], pvp: TWIN.pvp[d.k]}; d._v = (L.pve || L.pvp) ? dropVerdict(d, L) : null; return d; }).filter(d => d._v);
-  rows.sort((a, b) => DV_ORDER[a._v.v] - DV_ORDER[b._v.v] || b.at - a.at);
-  const n = {}; rows.forEach(d => n[d._v.v] = (n[d._v.v] || 0) + 1);
+  const byW = new Map();
+  DROPS.list.forEach(d => { if(!(TWIN.pve[d.k] || TWIN.pvp[d.k])) return; if(!byW.has(d.k)) byW.set(d.k, []); byW.get(d.k).push(d); });
+  const groups = [...byW.values()].map(g => {
+    const L = {pve: TWIN.pve[g[0].k], pvp: TWIN.pvp[g[0].k]}, vd = dropVerdict(g, L);
+    const r = x => { const a = DV_RANK(gradeIn(x.c, L.pve)), b = DV_RANK(gradeIn(x.c, L.pvp)); return a * 3 + b * 3 + Math.max(a, b); };
+    const ord = {keep: 0, duplicate: 1, dismantle: 2};
+    g.sort((a, b) => ord[vd.per.get(a)] - ord[vd.per.get(b)] || r(b) - r(a) || b.at - a.at);   // the best copy leads the card
+    g._v = vd; return g;
+  });
+  groups.sort((a, b) => DV_ORDER[a._v.v] - DV_ORDER[b._v.v] || Math.max(...b.map(x => x.at)) - Math.max(...a.map(x => x.at)));
+  const n = {}; groups.forEach(g => n[g._v.v] = (n[g._v.v] || 0) + 1);
   const tally = Object.keys(DV_ORDER).filter(k => n[k]).map(k => `<span class="dv-t dv-${k}"><i></i>${n[k]} ${k === "new" ? "new" : k === "dismantle" ? "to dismantle" : k === "upgrade" ? (n[k] === 1 ? "upgrade" : "upgrades") : (n[k] === 1 ? "duplicate" : "duplicates")}</span>`).join("");
-  const html = head + `<div class="dv-tally">${tally}</div><div class="drops">${rows.map(dropCard).join("")}</div>`;
-  rows.forEach(d => delete d._v);
+  const html = head + `<div class="dv-tally">${tally}</div><div class="drops dv-list">${groups.map(g => dropCard(g[0], g)).join("")}</div>`;
   return html;
 }
 function ico(kind, id, label, cls){
