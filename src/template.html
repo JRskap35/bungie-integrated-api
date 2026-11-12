@@ -1278,7 +1278,9 @@ function sampleCopies(k, o){         // example copies for the preview only, the
 const opts = v => Array.isArray(v) ? v.filter(Boolean) : v ? [v] : [];
 function gradeIn(c, L){
   if(!L) return "na";
-  const l1 = liveNames(L.p1), l2 = liveNames(L.p2), c1 = opts(c.p1), c2 = opts(c.p2);
+  // names compare without case or punctuation, like the perk boxes ("Quickdot SAS" on the sheet, "QuickDot SAS" on Bungie)
+  const pk = x => String(x || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
+  const l1 = liveNames(L.p1).map(pk), l2 = liveNames(L.p2).map(pk), c1 = opts(c.p1).map(pk), c2 = opts(c.p2).map(pk);
   if(!l1.length || !l2.length || !c1.some(x => l1.includes(x)) || !c2.some(x => l2.includes(x))) return "none";
   return c1.includes(l1[0]) && c2.includes(l2[0]) ? "god" : "semi";
 }
