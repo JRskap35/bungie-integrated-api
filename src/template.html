@@ -584,6 +584,8 @@ tr.detail td{background:rgba(201,178,119,.07);padding:4px 14px 16px;text-align:l
 .thumb.god::after{content:"";position:absolute;inset:-50%;background:linear-gradient(115deg,transparent 42%,rgba(220,255,236,.6) 50%,transparent 58%);animation:sheen 2.8s ease-in-out infinite;pointer-events:none}
 .thumb.semi{border-color:var(--semi);box-shadow:0 0 0 1px rgba(243,198,74,.3),0 0 12px rgba(243,198,74,.4)}
 .thumb.looking{border-style:dashed;border-color:var(--look)}
+.thumb.trash{border-color:#e0574a;box-shadow:0 0 0 1px rgba(224,87,74,.3),0 0 10px rgba(224,87,74,.35)}
+.thumb.owned{border-color:rgba(236,232,223,.55);box-shadow:0 0 0 1px rgba(236,232,223,.15)}
 .thumb.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
 button.thumb{appearance:none;display:block;padding:0;font:inherit;color:inherit;cursor:zoom-in;transition:transform .15s ease,filter .15s ease}
 button.thumb:hover{transform:scale(1.06);filter:brightness(1.12)}
@@ -1288,8 +1290,9 @@ function partHit(f, v, L){
     const nk = x => String(x || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
     return L.origin && L.origin !== "None" && !L.oriX && nk(L.origin) === nk(v) ? "god" : "";
   }
-  const list = f === "mw" ? mwList(L).map(mwKey) : liveNames(L[f]);
-  const i = list.indexOf(f === "mw" ? mwKey(v) : v);
+  const pk = x => String(x || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]/g, "");
+  const list = f === "mw" ? mwList(L).map(mwKey) : liveNames(L[f]).map(pk);
+  const i = list.indexOf(f === "mw" ? mwKey(v) : pk(v));
   return i < 0 ? "" : i === 0 ? "god" : "semi";
 }
 function reportCard(w){
@@ -1844,8 +1847,11 @@ function lines(arr){ return `<div class="lines">${arr.map(x => Array.isArray(x) 
 // the icon's border follows the best roll owned in the mode being viewed (PvE or PvP), the same grade its report card
 // icon shows; a drop card passes its own copy's grade. Looking for keeps its dashed border when nothing is owned yet.
 function rollBorder(w){
-  const st = ((reportCard(w).cards[MODE]) || {}).state;
-  return st === "god" || st === "semi" ? st : marks[w.id] === "looking" ? "looking" : "";
+  const rc = reportCard(w), st = (rc.cards[MODE] || {}).state;
+  if(st === "god" || st === "semi") return st;
+  if(marks[w.id] === "looking") return "looking";
+  const n = rc.cards.all.list.length;                    // on the account but no keeper in this mode (Joe, 2026-11-11)
+  return !n ? "" : rc.cards.trash.list.length >= n ? "trash" : "owned";
 }
 function thumb(w, big, g){
   const m = g !== undefined ? g : rollBorder(w);
@@ -2468,7 +2474,7 @@ function loadImg(urls){
 function shotSrc(w){
   const paths = Array.isArray(w.shot) ? w.shot : w.shot ? [w.shot] : [];
   if(!paths.length) return Promise.reject(new Error("no image"));
-  if(FB_CONFIG) return loadImg(paths.map(p => "https://www.bungie.net" + p));
+  if(FB_CONFIG || BUNGIE) return loadImg(paths.map(p => "https://www.bungie.net" + p));   // the website (Joe, 2026-11-11)
   const [k, sid] = w.sh || [archSlug(w.arch), w.id];
   if(!SHOT_SHARDS[k]) SHOT_SHARDS[k] = fetch(`shots/${k}.json`).then(r => r.ok ? r.json() : Promise.reject(new Error(r.status))).catch(e => { delete SHOT_SHARDS[k]; throw e; });
   return SHOT_SHARDS[k].then(m => m[sid] ? loadImg([m[sid]]) : Promise.reject(new Error("no image")));
